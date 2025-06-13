@@ -4,6 +4,7 @@ import { FormEventHandler, useState } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useFlashMessages } from '@/hooks/use-flash-messages';
+import { cn } from "@/lib/utils"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,22 +35,27 @@ type TenantForm = {
     nama: string;
     telepon: string | number;
     alamat: string;
-    qris: File;
+    qris: File | null; // Ubah menjadi nullable
     jam_buka: number | string;
     jam_tutup: number | string;
+    user_id: number;
     tautan: string;
+    _method?: string; // Tambahkan untuk method spoofing
 };
 
 export default function EditTenant({ tenant }: { tenant: TenantForm }) {
-    const { data, setData, put, processing, errors } = useForm<Required<TenantForm>>({
+    // Inisialisasi form data dengan _method untuk spoofing
+    const { data, setData, post, processing, errors } = useForm<TenantForm>({
         id: tenant.id,
         nama: tenant.nama,
         telepon: tenant.telepon,
         alamat: tenant.alamat,
-        qris: tenant.qris,
+        qris: null, // Set ke null untuk file baru
         jam_buka: tenant.jam_buka,
         jam_tutup: tenant.jam_tutup,
+        user_id: tenant.user_id,
         tautan: tenant.tautan,
+        _method: 'PUT', // Method spoofing untuk Laravel
     });
 
     const [qrisPreview, setQrisPreview] = useState<string | null>(null);
@@ -57,22 +63,38 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
     const handleQrisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Set file ke form data
             setData('qris', file);
 
-            // Create preview
+            // Buat preview untuk user experience
             const reader = new FileReader();
             reader.onload = (e) => {
                 setQrisPreview(e.target?.result as string);
             };
             reader.readAsDataURL(file);
+        } else {
+            // Reset jika tidak ada file yang dipilih
+            setData('qris', null);
+            setQrisPreview(null);
         }
     };
 
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('merchant.tenant.update', tenant.id), {
+        console.log("Submitting data:", data);
+        
+        // Gunakan post() dengan method spoofing, bukan put()
+        post(route('merchant.tenant.update', tenant.id), {
+            // Set forceFormData ke true untuk memaksa penggunaan FormData
+            forceFormData: true,
+            preserveState: true,
+            preserveScroll: true,
             onSuccess: () => {
+                console.log('Update berhasil');
                 router.visit(route('merchant.tenant.edit', tenant.id));
+            },
+            onError: (errors) => {
+                console.error('Update gagal:', errors);
             },
             onFinish: () => {
                 console.log('Form submission finished');
@@ -193,19 +215,16 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
                                     className="w-full"
                                 />
                                 <Tooltip>
-                                    <TooltipTrigger>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`${window.location.origin}${tenant.tautan}`);
-                                            }}
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                        <TooltipContent>
-                                            <p>Salin</p>
-                                        </TooltipContent>
+                                    <TooltipTrigger type='button' className={cn(buttonVariants({ variant: 'outline' }))}
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}${tenant.tautan}`);
+                                        }}
+                                    >
+                                        <Copy className="h-4 w-4" />
                                     </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Salin</p>
+                                    </TooltipContent>
                                 </Tooltip>
                             </div>
                         </div>
@@ -234,7 +253,7 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
                                     />
                                 ) : (
                                     <img
-                                        src={data.qris ? `${window.location.origin}/storage/${data.qris}` : `${window.location.origin}/images/blank-photo-icon.jpg`}
+                                        src={tenant.qris ? `${window.location.origin}/storage/${tenant.qris}` : `${window.location.origin}/images/blank-photo-icon.jpg`}
                                         alt="QRIS Image"
                                         className="h-full w-full rounded-md object-contain aspect-video"
                                     />

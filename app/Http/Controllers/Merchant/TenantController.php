@@ -130,13 +130,15 @@ class TenantController extends Controller
             'nama' => 'required|string|max:50',
             'telepon' => 'required|string|max:15',
             'alamat' => 'required|string|max:255',
-            'qris' => 'nullable|max:2048',
+            'qris' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'jam_buka' => 'required|date_format:H:i',
             'jam_tutup' => 'required|date_format:H:i|after:jam_buka',
         ], [
             'nama.required' => 'Nama warung harus diisi.',
             'telepon.required' => 'Telepon harus diisi.',
             'alamat.required' => 'Alamat harus diisi.',
+            'qris.image' => 'QRIS harus berupa gambar.',
+            'qris.mimes' => 'QRIS harus berformat jpeg, png, jpg, atau webp.',
             'qris.max' => 'Ukuran QRIS maksimal 2MB.',
             'jam_buka.required' => 'Jam buka harus diisi.',
             'jam_tutup.required' => 'Jam tutup harus diisi.',
@@ -154,12 +156,18 @@ class TenantController extends Controller
             }
             $qrisPath = $tenant->qris;
             if ($request->hasFile('qris')) {
+                // Hapus file lama jika ada
+                if ($tenant->qris && Storage::disk('public')->exists($tenant->qris)) {
+                    Storage::disk('public')->delete($tenant->qris);
+                }
+                
+                // Upload file baru
                 $file = $request->file('qris');
                 $filename = time() . '_' . $file->getClientOriginalName();
-
-                // Save to storage
                 $path = 'qris/' . $filename;
-                Storage::disk('public')->put($path, $file->getContent());
+                
+                // Gunakan putFileAs untuk keamanan yang lebih baik
+                Storage::disk('public')->putFileAs('qris', $file, $filename);
                 $qrisPath = $path;
             }
             $tenant->update([
