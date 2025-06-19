@@ -7,7 +7,35 @@ import { Link } from '@inertiajs/react';
 import { House, Store, LayoutGrid, Dessert, ScrollText } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const merchantNavItems: NavItem[] = [
+    {
+        title: 'Beranda',
+        href: '/dashboard',
+        icon: House,
+    },
+    {
+        title: 'Warung',
+        href: '/tenant',
+        icon: Store,
+    },
+    {
+        title: 'Kategori',
+        href: '/category',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Menu',
+        href: '/menu',
+        icon: Dessert,
+    },
+    {
+        title: 'Pesanan',
+        href: '/order',
+        icon: ScrollText,
+    },
+];
+
+const adminNavItems: NavItem[] = [
     {
         title: 'Beranda',
         href: '/dashboard',
@@ -64,10 +92,15 @@ export function AppSidebar({ userType }: { userType: string }) {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems.map(item => ({
+                {userType === 'merchant' 
+                ? <NavMain items={merchantNavItems.map(item => ({
                     ...item,
                     href: `/${userType}${item.href}`
                 }))} />
+                : <NavMain items={adminNavItems.map(item => ({
+                    ...item,
+                    href: `/${userType}${item.href}`
+                }))} />}
             </SidebarContent>
 
             <SidebarFooter>

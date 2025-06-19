@@ -5,7 +5,7 @@ import { useFlashMessages } from '@/hooks/use-flash-messages';
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Pencil, Copy, Download } from 'lucide-react';
@@ -14,6 +14,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { cn } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -109,7 +110,7 @@ export default function ShowTenant({ tenant }: { tenant: TenantData }) {
                             <Input
                                 id='jamtutup'
                                 type='time'
-                                tabIndex={4}
+                                tabIndex={5}
                                 value={tenant.jam_tutup}
                                 disabled
                                 className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
@@ -125,20 +126,15 @@ export default function ShowTenant({ tenant }: { tenant: TenantData }) {
                                     id='tautan'
                                     type='text'
                                     disabled
-                                    tabIndex={1}
                                     value={`${window.location.origin}${tenant.tautan}`}
                                     className="w-full"
                                 />
                                 <Tooltip>
-                                    <TooltipTrigger>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`${window.location.origin}${tenant.tautan}`);
-                                            }}
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
+                                    <TooltipTrigger className={cn(buttonVariants({ 'variant': 'outline' }))} tabIndex={6}
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}${tenant.tautan}`);
+                                        }}>
+                                        <Copy className="h-4 w-4" />
                                         <TooltipContent>
                                             <p>Salin</p>
                                         </TooltipContent>
@@ -147,7 +143,7 @@ export default function ShowTenant({ tenant }: { tenant: TenantData }) {
                             </div>
                         </div>
                     </div>
-                    <div className='grid grid-rows-1 items-start col-span-2 gap-4'>
+                    <div className='grid items-start col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='nama'>Kode QRIS</Label>
                             <Input
@@ -167,19 +163,16 @@ export default function ShowTenant({ tenant }: { tenant: TenantData }) {
                                     className="h-full w-full rounded-md object-contain aspect-video"
                                 />
                                 <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" className='absolute top-0 right-0'
-                                            onClick={() => {
-                                                const link = document.createElement('a');
-                                                link.href = `${window.location.origin}/storage/${tenant.qris}`;
-                                                link.download = `qris-${tenant.nama}.png`;
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                document.body.removeChild(link);
-                                            }}
-                                        >
-                                            <Download className="h-4 w-4" />
-                                        </Button>
+                                    <TooltipTrigger className={cn(buttonVariants({ 'variant': 'outline' }), 'absolute top-0 right-0')}
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = `${window.location.origin}/storage/${tenant.qris}`;
+                                            link.download = `qris-${tenant.nama}.png`;
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}>
+                                        <Download className="h-4 w-4" />
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Unduh</p>

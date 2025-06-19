@@ -3,6 +3,7 @@ import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useFlashMessages } from '@/hooks/use-flash-messages';
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -79,9 +80,12 @@ export default function CreateTenant({ user }: { user: UserData }) {
         });
     };
 
+    const { ToasterComponent } = useFlashMessages();
+
     return (
         <AppLayout breadcrumbs={breadcrumbs} userType='merchant'>
             <Head title="Buat Warung" />
+            <ToasterComponent />
             <form className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={submit}>
                 <h1 className='text-xl py-2 font-semibold'>Buat Warung</h1>
                 <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 items-start gap-4 w-full'>
@@ -182,7 +186,7 @@ export default function CreateTenant({ user }: { user: UserData }) {
                             />
                         </div>
                     </div>
-                    <div className='grid grid-rows-1 items-start col-span-2 gap-4'>
+                    <div className='grid items-start col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='qris'>Kode QRIS</Label>
                             <Input
@@ -207,7 +211,7 @@ export default function CreateTenant({ user }: { user: UserData }) {
                                     />
                                 ) : (
                                     <div className="flex items-center justify-center h-full w-full rounded-md border border-dashed">
-                                        <span className="text-muted-foreground">No image selected</span>
+                                        <span className="text-muted-foreground">Tidak ada gambar terpilih</span>
                                     </div>
                                 )}
                             </AspectRatio>

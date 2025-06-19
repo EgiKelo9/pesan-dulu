@@ -108,7 +108,7 @@ export function DataTable<TData extends { id: string | number }, TValue>({
           {/* column filter */}
           <DropdownMenu>
             <DropdownMenuTrigger className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }), "ml-auto hidden h-9 lg:flex")}>
+              buttonVariants({ variant: "outline", size: "sm" }), "ml-auto h-9")}>
               <Settings2 />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[150px]">
@@ -128,7 +128,7 @@ export function DataTable<TData extends { id: string | number }, TValue>({
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     >
-                      {column.id}
+                      {column.id.replace('_id', '')}
                     </DropdownMenuCheckboxItem>
                   )
                 })}
@@ -193,10 +193,15 @@ export function DataTable<TData extends { id: string | number }, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-ellipsis">
-                      <Link href={`${href}/${row.original.id}`} key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </Link>
+                    <TableCell key={cell.id} className="truncate max-w-96">
+                      {/* Only wrap non-action cells with Link */}
+                      {cell.column.id === "actions" || cell.column.id === "select" ? (
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                      ) : (
+                        <Link href={`${href}/${row.original.id}`} key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Link>
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>

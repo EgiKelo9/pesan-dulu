@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tenant', TenantController::class)->except(['destroy']);
         Route::resource('category', CategoryController::class);
         Route::resource('menu', MenuController::class);
+        Route::put('menu/{menu}/status', [MenuController::class, 'updateStatus'])->name('menu.updateStatus');
         Route::resource('order', OrderController::class);
     });
 

@@ -16,11 +16,13 @@ export const CategoryColumns: ColumnDef<Category>[] = createTableColumns<Categor
             key: "nama",
             header: "Nama",
             sortable: true,
+            type: "text",
         },
         {
             key: "deskripsi",
             header: "Deskripsi",
             sortable: false,
+            type: "text",
         },
     ],
     actionConfig: {

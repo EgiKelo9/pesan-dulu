@@ -16,7 +16,7 @@ class CategoryController extends Controller
     {
         $tenant = auth('web')->user()->tenant;
         if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         $categories = auth('web')->user()->tenant->categories()->orderBy('created_at', 'desc')->get();
         return Inertia::render('merchant/category/category-index', [
@@ -31,7 +31,7 @@ class CategoryController extends Controller
     {
         $tenant = auth('web')->user()->tenant;
         if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         $tenant = auth('web')->user()->tenant;
         return Inertia::render('merchant/category/category-create', [
@@ -68,10 +68,8 @@ class CategoryController extends Controller
                 'tenant_id' => auth('web')->user()->tenant->id,
             ]);
 
-            session()->flash('success', 'Kategori berhasil dibuat.');
-            return redirect()->route('merchant.category.show', $category->id);
+            return redirect()->route('merchant.category.show', $category->id)->with('success', 'Kategori berhasil dibuat.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Kategori gagal dibuat.');
             return back()->withErrors(['error' => 'Terjadi kesalahan saat membuat kategori.'])->withInput();
         }
     }
@@ -83,7 +81,7 @@ class CategoryController extends Controller
     {
         $tenant = auth('web')->user()->tenant;
         if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         $category = auth('web')->user()->tenant->categories()->findOrFail($id);
         return Inertia::render('merchant/category/category-show', [
@@ -98,7 +96,7 @@ class CategoryController extends Controller
     {
         $tenant = auth('web')->user()->tenant;
         if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         $category = auth('web')->user()->tenant->categories()->findOrFail($id);
         return Inertia::render('merchant/category/category-edit', [
@@ -122,6 +120,11 @@ class CategoryController extends Controller
         ]);
 
         try {
+            $existingCategory = auth('web')->user()->tenant->categories()->where('nama', $request->nama)->first();
+            if ($existingCategory) {
+                return back()->withErrors(['nama' => 'Kategori dengan nama ini sudah ada.'])->withInput();
+            }
+            
             // Find the category that belongs to the current tenant
             $category = auth('web')->user()->tenant->categories()->findOrFail($id);
             
@@ -131,12 +134,8 @@ class CategoryController extends Controller
                 'deskripsi' => $request->deskripsi,
             ]);
 
-            // Redirect with success message
-            session()->flash('success', 'Kategori berhasil diperbarui.');
             return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
         } catch (\Exception $e) {
-            // Handle any database errors
-            session()->flash('error', 'Kategori gagal diperbarui.');
             return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui kategori.'])->withInput();
         }
     }
@@ -149,13 +148,8 @@ class CategoryController extends Controller
         try {
             $category = auth('web')->user()->tenant->categories()->findOrFail($id);
             $category->delete();
-
-            // Redirect with success message
-            session()->flash('success', 'Kategori berhasil dihapus.');
-            return redirect()->route('merchant.category.index');
+            return redirect()->route('merchant.category.index')->with('success', 'Kategori berhasil dihapus.');
         } catch (\Exception $e) {
-            // Handle any database errors
-            session()->flash('error', 'Kategori gagal dihapus.');
             return back()->withErrors(['error' => 'Terjadi kesalahan saat menghapus kategori.']);
         }
     }

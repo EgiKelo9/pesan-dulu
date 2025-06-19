@@ -21,7 +21,7 @@ class MenuFactory extends Factory
             'status' => fake()->randomElement(['tersedia', 'tidak tersedia']),
             'harga' => fake()->numberBetween(10, 100) * 1000,
             'deskripsi' => fake()->sentence(8),
-            'gambar' => fake()->imageUrl(640, 480, 'food', true),
+            'foto' => "menu/1749784347_chriswoii.jpg",
             'category_id' => \App\Models\Category::factory(),
             'tenant_id' => \App\Models\Tenant::factory(),
         ];

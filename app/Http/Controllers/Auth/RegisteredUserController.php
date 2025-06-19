@@ -62,7 +62,7 @@ class RegisteredUserController extends Controller
         //     'status' => $request->session()->get('status')
         // ]);
 
-        return redirect()->route('merchant.tenant.index')->with('message', 'Akun Anda berhasil dibuat. Silakan buat tenant untuk melanjutkan.');
+        return redirect()->route('merchant.tenant.create')->with('success', 'Akun Anda berhasil dibuat. Silakan buat warung untuk melanjutkan.');
 
     }
 }

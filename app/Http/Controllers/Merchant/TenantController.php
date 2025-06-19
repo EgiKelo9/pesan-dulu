@@ -17,7 +17,7 @@ class TenantController extends Controller
     {
         $tenant = auth('web')->user()->tenant;
         if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         return redirect()->route('merchant.tenant.show', $tenant->id);
     }
@@ -30,7 +30,7 @@ class TenantController extends Controller
         $user = auth('web')->user();
         $tenant = $user->tenant;
         if ($tenant) {
-            return redirect()->route('merchant.tenant.show', $user->id)->with('message', 'Anda sudah memiliki tenant.');
+            return redirect()->route('merchant.tenant.show', $user->id)->with('warning', 'Anda sudah memiliki tenant.');
         }
         return Inertia::render('merchant/tenant/tenant-create', [
             'user' => auth('web')->user(),
@@ -84,12 +84,9 @@ class TenantController extends Controller
                 'tautan' => "/" . strtolower(str_replace(' ', '-', $request->nama)),
                 'user_id' => auth('web')->user()->id,
             ]);
-
-            session()->flash('success', 'Warung berhasil dibuat.');
-            return redirect()->route('merchant.tenant.show', $tenant->id)->with('message', 'Tenant berhasil dibuat.');
+            return redirect()->route('merchant.tenant.show', auth('web')->user()->tenant->id)->with('success', 'Warung berhasil dibuat.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Warung gagal dibuat.');
-            return back()->withErrors(['error' => 'Terjadi kesalahan saat membuat tenant. Silakan coba lagi.'])->withInput();
+            return back()->withErrors('Terjadi kesalahan saat membuat warung. Silakan coba lagi.')->withInput();
         }
     }
 
@@ -99,7 +96,7 @@ class TenantController extends Controller
     public function show(string $id)
     {
         $tenant = Tenant::findOrFail($id);
-        if ($tenant->user_id !== auth('web')->user()->id) {
+        if ($tenant->user_id !== auth('web')->user()->tenant->id) {
             return redirect()->route('merchantDashboard')->withErrors(['error' => 'Anda tidak memiliki akses ke tenant ini.']);
         }
         return Inertia::render('merchant/tenant/tenant-show', [
@@ -113,7 +110,11 @@ class TenantController extends Controller
     public function edit(string $id)
     {
         $tenant = Tenant::findOrFail($id);
-        if ($tenant->user_id !== auth('web')->user()->id) {
+        $userTenant = auth('web')->user()->tenant;
+        if (!$userTenant) {
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
+        }
+        if ($tenant->user_id !== $userTenant->id) {
             return redirect()->route('merchantDashboard')->withErrors(['error' => 'Anda tidak memiliki akses ke tenant ini.']);
         }
         return Inertia::render('merchant/tenant/tenant-edit', [
@@ -157,8 +158,8 @@ class TenantController extends Controller
             $qrisPath = $tenant->qris;
             if ($request->hasFile('qris')) {
                 // Hapus file lama jika ada
-                if ($tenant->qris && Storage::disk('public')->exists($tenant->qris)) {
-                    Storage::disk('public')->delete($tenant->qris);
+                if ($qrisPath && Storage::disk('public')->exists($qrisPath)) {
+                    Storage::disk('public')->delete($qrisPath);
                 }
                 
                 // Upload file baru
@@ -180,10 +181,8 @@ class TenantController extends Controller
                 'tautan' => "/" . strtolower(str_replace(' ', '-', $request->nama)),
             ]);
 
-            session()->flash('success', 'Warung berhasil diperbarui.');
-            return redirect()->back()->with('message', 'Warung berhasil dibuat.');
+            return redirect()->back()->with('success', 'Warung berhasil dibuat.');
         } catch (\Exception $e) {
-            session()->flash('success', 'Warung berhasil diperbarui.');
             return back()->withErrors(['error' => 'Terjadi kesalahan saat membuat warung. Silakan coba lagi.'])->withInput();
         }
     }

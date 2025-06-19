@@ -12,11 +12,11 @@ class DashboardController extends Controller
         $user = auth('web')->user();
         if ($user->role === 'merchant') {
             if (!$user->tenant) {
-                return redirect()->route('merchant.tenant.create')->with('message', 'Silakan buat warung terlebih dahulu.');
+                return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
             }
             return Inertia::render('merchant/dashboard');
         } else {
-            return redirect()->route('login')->with('message', 'Anda tidak memiliki akses ke beranda merchant.');
+            return redirect()->route('login')->with('error', 'Anda tidak memiliki akses ke beranda merchant.');
         }
     }
 

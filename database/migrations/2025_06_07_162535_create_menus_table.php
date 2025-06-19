@@ -18,7 +18,7 @@ return new class extends Migration
                 ->default('tersedia');
             $table->bigInteger('harga');
             $table->text('deskripsi');
-            $table->string('gambar');
+            $table->string('foto');
             $table->foreignId('category_id')
                 ->constrained('categories')
                 ->onDelete('cascade')

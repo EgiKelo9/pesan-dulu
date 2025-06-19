@@ -21,7 +21,7 @@ class TenantFactory extends Factory
             'nama' => $nama,
             'telepon' => fake()->unique()->phoneNumber(),
             'alamat' => fake()->address(),
-            'qris' => fake()->imageUrl(640, 480, 'QR Code', true, 'QRIS'),
+            'qris' => "qris/1749759802_qris example.png",
             'jam_buka' => fake()->time("H:i"),
             'jam_tutup' => fake()->time("H:i"),
             'tautan' => '/'.str_replace(' ', '-', strtolower($nama)),
