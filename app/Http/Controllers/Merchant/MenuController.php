@@ -19,7 +19,7 @@ class MenuController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $menus = auth('web')->user()->tenant->menus()->orderBy('created_at', 'desc')->get();
+        $menus = $tenant->menus()->orderBy('created_at', 'desc')->get();
         $menus->each(function ($menu) {
             $menu->category_id = $menu->category->nama;
         });
@@ -115,7 +115,7 @@ class MenuController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $menu = auth('web')->user()->tenant->menus()->findOrFail($id);
+        $menu = $tenant->menus()->findOrFail($id);
         $menu->category_id = $menu->category->nama;
         return Inertia::render('merchant/menu/menu-show', [
             'menu' => $menu,
@@ -131,7 +131,7 @@ class MenuController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $menu = auth('web')->user()->tenant->menus()->findOrFail($id);
+        $menu = $tenant->menus()->findOrFail($id);
         $categories = $tenant->categories()->get();
         return Inertia::render('merchant/menu/menu-edit', [
             'categories' => $categories,
@@ -169,8 +169,9 @@ class MenuController extends Controller
         ]);
 
         try {
-            $menu = auth('web')->user()->tenant->menus()->findOrFail($id);
-            $existingMenu = auth('web')->user()->tenant->menus()
+            $tenant = auth('web')->user()->tenant;
+            $menu = $tenant->menus()->findOrFail($id);
+            $existingMenu = $tenant->menus()
                 ->where('nama', $request->nama)
                 ->where('id', '!=', $id)
                 ->first();
@@ -212,7 +213,21 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $tenant = auth('web')->user()->tenant;
+            if (!$tenant) {
+                return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
+            }
+            $menu = $tenant->menus()->findOrFail($id);
+            // Delete the image if it exists
+            if ($menu->foto && Storage::disk('public')->exists($menu->foto)) {
+                Storage::disk('public')->delete($menu->foto);
+            }
+            $menu->delete();
+            return redirect()->route('merchant.menu.index')->with('success', "Menu {$menu->nama} berhasil dihapus.");
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat menghapus menu.']);
+        }
     }
 
     /**

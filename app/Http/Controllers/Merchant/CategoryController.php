@@ -18,7 +18,7 @@ class CategoryController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $categories = auth('web')->user()->tenant->categories()->orderBy('created_at', 'desc')->get();
+        $categories = $tenant->categories()->orderBy('created_at', 'desc')->get();
         return Inertia::render('merchant/category/category-index', [
             'categories' => $categories,
         ]);
@@ -33,7 +33,6 @@ class CategoryController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $tenant = auth('web')->user()->tenant;
         return Inertia::render('merchant/category/category-create', [
             'tenant' => $tenant,
         ]);
@@ -55,8 +54,9 @@ class CategoryController extends Controller
         ]);
 
         try {
+            $tenant = auth('web')->user()->tenant;
             // Check if the category already exists
-            $existingCategory = auth('web')->user()->tenant->categories()->where('nama', $request->nama)->first();
+            $existingCategory = $tenant->categories()->where('nama', $request->nama)->first();
             if ($existingCategory) {
                 return back()->withErrors(['nama' => 'Kategori dengan nama ini sudah ada.'])->withInput();
             }
@@ -65,7 +65,7 @@ class CategoryController extends Controller
             $category = Category::create([
                 'nama' => $request->nama,
                 'deskripsi' => $request->deskripsi,
-                'tenant_id' => auth('web')->user()->tenant->id,
+                'tenant_id' => $tenant->id,
             ]);
 
             return redirect()->route('merchant.category.show', $category->id)->with('success', 'Kategori berhasil dibuat.');
@@ -83,7 +83,7 @@ class CategoryController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $category = auth('web')->user()->tenant->categories()->findOrFail($id);
+        $category = $tenant->categories()->findOrFail($id);
         return Inertia::render('merchant/category/category-show', [
             'category' => $category,
         ]);
@@ -98,7 +98,7 @@ class CategoryController extends Controller
         if (!$tenant) {
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
-        $category = auth('web')->user()->tenant->categories()->findOrFail($id);
+        $category = $tenant->categories()->findOrFail($id);
         return Inertia::render('merchant/category/category-edit', [
             'category' => $category,
         ]);
@@ -120,13 +120,14 @@ class CategoryController extends Controller
         ]);
 
         try {
-            $existingCategory = auth('web')->user()->tenant->categories()->where('nama', $request->nama)->first();
+            $tenant = auth('web')->user()->tenant;
+            $existingCategory = $tenant->categories()->where('nama', $request->nama)->first();
             if ($existingCategory) {
                 return back()->withErrors(['nama' => 'Kategori dengan nama ini sudah ada.'])->withInput();
             }
             
             // Find the category that belongs to the current tenant
-            $category = auth('web')->user()->tenant->categories()->findOrFail($id);
+            $category = $tenant->categories()->findOrFail($id);
             
             // Update the category with new data
             $category->update([

@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->dateTimeTz('tanggal_pesanan');
-            $table->string('nama_pemesan');
-            $table->string('telepon_pemesan', 15);
+            $table->dateTimeTz('tanggal_pesanan')->default(now('Asia/Singapore'));
+            $table->string('nama');
+            $table->string('telepon', 15);
+            $table->time('waktu_diambil')->default(now('Asia/Singapore')->addMinutes(30)->format('H:i'));
             $table->enum('status', ['menunggu', 'diterima', 'siap', 'diambil', 'gagal'])
                 ->default('menunggu');
             $table->bigInteger('total_harga')->default(0);

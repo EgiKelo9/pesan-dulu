@@ -84,7 +84,7 @@ export default function ShowMenu({ menu }: { menu: MenuData }) {
                                 type='text'
                                 value={menu.category_id}
                                 disabled
-                                className="w-full"
+                                className="w-full capitalize"
                             />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>

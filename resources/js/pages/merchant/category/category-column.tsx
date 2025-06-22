@@ -29,6 +29,8 @@ export const CategoryColumns: ColumnDef<Category>[] = createTableColumns<Categor
         basePath: "merchant.category",
         showEdit: true,
         showDelete: true,
+        showSwitch: false,
+        showActionButton: false,
     },
     showSelectColumn: true,
 })

@@ -33,4 +33,9 @@ class Tenant extends Model
     {
         return $this->hasMany(Menu::class, 'tenant_id');
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'tenant_id');
+    }
 }

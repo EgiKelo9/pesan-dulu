@@ -26,7 +26,7 @@ class DashboardController extends Controller
         if ($user->role === 'admin') {
             return Inertia::render('admin/dashboard');
         } else {
-            return redirect()->route('login')->with('message', 'Anda tidak memiliki akses ke beranda admin.');
+            return redirect()->route('login')->with('error', 'Anda tidak memiliki akses ke beranda admin.');
         }
     }
 }

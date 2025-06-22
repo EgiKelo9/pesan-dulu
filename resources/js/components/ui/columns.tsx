@@ -15,6 +15,7 @@ import {
   LoaderCircle,
   Pencil,
   Trash2,
+  Check,
 } from "lucide-react"
 
 import {
@@ -47,7 +48,8 @@ export interface DataColumnConfig {
   key: string
   header: string
   sortable?: boolean
-  type: "text" | "date" | "image" | "currency" | "badge"
+  type: "text" | "date" | "time" | "image" | "currency" | "badge" | "list"
+  onClick?: (item: any) => any
 }
 
 export interface ActionConfig {
@@ -55,10 +57,16 @@ export interface ActionConfig {
   showEdit?: boolean
   showDelete?: boolean
   showSwitch?: boolean
+  showActionButton?: boolean
   editLabel?: string
   deleteLabel?: string
   switchLabel?: string
   switchKey?: string
+  actionButtonLabel?: string
+  actionButtonKey?: string
+  actionButtonVariant?: string
+  actionButtonValues?: any | any[]
+  actionButtonPath?: string // Route for action button
   switchTrueValue?: any  // Value when switch is ON
   switchFalseValue?: any // Value when switch is OFF
   switchTrueLabel?: string // Label for true state
@@ -69,6 +77,7 @@ export interface ActionConfig {
   onEdit?: (item: BaseEntity) => void
   onDelete?: (item: BaseEntity) => void
   onSwitch?: (item: BaseEntity, newValue: any) => void
+  onAction?: (item: BaseEntity) => void // Callback for action button
 }
 
 export interface ColumnGeneratorConfig {
@@ -146,6 +155,23 @@ export function createTableColumns<T extends BaseEntity>(
                 {row.getValue(columnConfig.key)}
               </span>
             );
+          case "date":
+            return (
+              <span>
+                {new Date(row.getValue(columnConfig.key)).getDate()}
+              </span>
+            );
+          case "time":
+            const timeValue = row.getValue(columnConfig.key) as Date | string;
+            const dateTime = new Date(timeValue);
+            if (!isNaN(dateTime.getTime())) {
+              return (
+                <span>
+                  {`${dateTime.getHours().toString()}:${dateTime.getMinutes().toString()}`} WITA
+                </span>
+              )
+            }
+            return <span>{String(timeValue)} WITA</span>;
           case "image":
             const imagePath = row.getValue(columnConfig.key) as string
             return (
@@ -168,7 +194,7 @@ export function createTableColumns<T extends BaseEntity>(
                   currency: 'IDR',
                 }).format(price)}
               </span>
-            )
+            );
           case "badge":
             const status = row.getValue(columnConfig.key) as string
             return (
@@ -178,7 +204,25 @@ export function createTableColumns<T extends BaseEntity>(
               >
                 {status}
               </Badge>
-            )
+            );
+          case "list":
+            const items = row.getValue(columnConfig.key);
+            return (
+              <span>
+                {Array.isArray(items)
+                  ? items.map((item, i) =>
+                    typeof item === 'object' && item !== null
+                      ? (item.nama) + (item.pivot ? ` (${item.pivot.jumlah}x)` : '')
+                      : String(item)
+                  ).join(', ')
+                  : typeof items === 'object' && items !== null
+                    ? Object.entries(items).map(([key, value]) =>
+                      `${key}: ${String(value)}`
+                    ).join(', ')
+                    : String(items)
+                }
+              </span>
+            );
         }
       }
     }
@@ -187,7 +231,7 @@ export function createTableColumns<T extends BaseEntity>(
 
   // Tambahkan kolom aksi
   const { actionConfig } = config
-  if (actionConfig.showEdit !== false || actionConfig.showDelete !== false || actionConfig.showSwitch !== false) {
+  if (actionConfig.showEdit !== false || actionConfig.showDelete !== false || actionConfig.showSwitch !== false || actionConfig.showActionButton !== false) {
     columns.push({
       id: "actions",
       cell: ({ row }) => {
@@ -266,20 +310,86 @@ export function createTableColumns<T extends BaseEntity>(
           }
         }
 
+        const handleAction = () => {
+          // First, check if there's a custom action handler
+          if (actionConfig.onAction) {
+            actionConfig.onAction(item);
+            return; // Exit early if custom handler is used
+          }
+
+          // Validate that all required configuration properties exist
+          if (!actionConfig.actionButtonPath ||
+            !actionConfig.actionButtonKey ||
+            !actionConfig.actionButtonValues ||
+            !Array.isArray(actionConfig.actionButtonValues)) {
+            console.error('Missing or invalid action configuration');
+            return;
+          }
+
+          // Get the current status value from the item
+          const currentValue = item[actionConfig.actionButtonKey];
+
+          // Check if the current value exists in our allowed values array
+          if (!actionConfig.actionButtonValues.includes(currentValue)) {
+            console.error(`Current value "${currentValue}" not found in allowed values`);
+            return;
+          }
+
+          // Find the current value's position in the array
+          const currentIndex = actionConfig.actionButtonValues.indexOf(currentValue);
+
+          let nextIndex = (currentIndex + 1);
+          if (nextIndex >= actionConfig.actionButtonValues.length) {
+            console.error(`No next value found for "${currentValue}"`);
+            nextIndex -= 1;
+            return;
+          }
+          const nextValue = actionConfig.actionButtonValues[nextIndex];
+
+          console.log(`Changing status from "${currentValue}" to "${nextValue}"`);
+
+          // Make the API call to update the status
+          router.put(route(actionConfig.basePath + actionConfig.actionButtonPath, item.id), {
+              [actionConfig.actionButtonKey]: nextValue
+            }, {
+              preserveState: true,
+              preserveScroll: true,
+              onSuccess: () => {
+                console.log('Status updated successfully');
+                router.reload();
+              },
+              onError: (error) => {
+                console.error('Failed to update status:', error);
+                alert('Terjadi kesalahan saat mengubah status. Silakan coba lagi.');
+              }
+            }
+          );
+        };
+
         return (
           <>
             <div className="text-right">
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0">
                     <span className="sr-only">Open menu</span>
                     <EllipsisVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {actionConfig.showActionButton !== false && (
+                    <DropdownMenuItem
+                      onClick={handleAction}
+                      variant="default"
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      {actionConfig.actionButtonLabel || 'Aksi'}
+                    </DropdownMenuItem>
+                  )}
                   {actionConfig.showSwitch !== false && (
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                       <Switch
+                        className="mr-1"
                         checked={
                           actionConfig.getSwitchChecked
                             ? actionConfig.getSwitchChecked(item)
@@ -293,7 +403,7 @@ export function createTableColumns<T extends BaseEntity>(
                   <DropdownMenuSeparator />
                   {actionConfig.showEdit !== false && (
                     <DropdownMenuItem onClick={handleEdit}>
-                      <Pencil className="h-4 w-4 mr-2" />
+                      <Pencil className="h-4 w-4 mr-1" />
                       {actionConfig.editLabel || 'Edit'}
                     </DropdownMenuItem>
                   )}
@@ -306,7 +416,7 @@ export function createTableColumns<T extends BaseEntity>(
                       }}
                       variant="destructive"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
+                      <Trash2 className="h-4 w-4 mr-1" />
                       {actionConfig.deleteLabel || 'Hapus'}
                     </DropdownMenuItem>
                   )}
@@ -314,7 +424,7 @@ export function createTableColumns<T extends BaseEntity>(
               </DropdownMenu>
             </div>
 
-            {/* Separate AlertDialog outside of DropdownMenu */}
+            {/* AlertDialog For Deleting */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -325,10 +435,12 @@ export function createTableColumns<T extends BaseEntity>(
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel disabled={deleting} onClick={() => {
-                    setDeleting(false)
-                    setShowDeleteDialog(false)
-                    router.reload()
+                  <AlertDialogCancel disabled={deleting} onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDeleting(false);
+                    setShowDeleteDialog(false);
+                    router.visit(route(actionConfig.basePath + '.index'));
                   }}>
                     Batal
                   </AlertDialogCancel>

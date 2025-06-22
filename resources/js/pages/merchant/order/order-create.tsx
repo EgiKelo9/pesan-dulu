@@ -2,28 +2,14 @@ import AppLayout from '@/layouts/app-layout';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, router } from '@inertiajs/react';
-import { cn } from "@/lib/utils"
-import { useFlashMessages } from '@/hooks/use-flash-messages';
+import { Head, Link, useForm } from '@inertiajs/react';
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import InputError from '@/components/input-error';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Eye, Trash2 } from 'lucide-react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger
-} from "@/components/ui/alert-dialog"
 import {
     Select,
     SelectContent,
@@ -42,21 +28,18 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/merchant/menu',
     },
     {
-        title: 'Ubah',
-        href: '/merchant/menu/{id}/edit',
+        title: 'Buat',
+        href: '/merchant/menu/create',
     },
 ];
 
 type MenuForm = {
-    id: number;
     nama: string;
     status: 'tersedia' | 'tidak tersedia';
     harga: number;
     deskripsi: string;
     foto: File | null;
     category_id: number;
-    tenant_id: number;
-    _method?: string;
 };
 
 type CategoryData = {
@@ -65,37 +48,37 @@ type CategoryData = {
     deskripsi: string;
 };
 
-export default function EditCategory({ menu, categories }: { menu: MenuForm, categories: CategoryData[] }) {
-    const { data, setData, post, processing, errors } = useForm<Required<MenuForm>>({
-        id: menu.id,
-        nama: menu.nama,
-        status: menu.status,
-        harga: menu.harga,
-        deskripsi: menu.deskripsi,
+export default function CreateMenu({ categories }: { categories: CategoryData[] }) {
+    const { data, setData, post, processing, errors, reset, cancel } = useForm<Required<MenuForm>>({
+        nama: '',
+        status: 'tersedia',
+        harga: 0,
+        deskripsi: '',
         foto: null,
-        category_id: menu.category_id,
-        tenant_id: menu.tenant_id,
-        _method: 'PUT',
+        category_id: 0,
     });
 
-    const [deleting, setDeleting] = useState(false);
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
 
-    const handleSubmit: FormEventHandler = (e) => {
+    const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setData('foto', file);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setFotoPreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        console.log("Submitting data:", data);
-
-        // Gunakan post() dengan method spoofing, bukan put()
-        post(route('merchant.menu.update', menu.id), {
-            // Set forceFormData ke true untuk memaksa penggunaan FormData
-            forceFormData: true,
-            preserveState: true,
-            preserveScroll: true,
+        post(route('merchant.menu.store'), {
             onSuccess: () => {
-                console.log('Update berhasil');
-                router.visit(route('merchant.menu.edit', menu.id));
-            },
-            onError: (errors) => {
-                console.error('Update gagal:', errors);
+                reset();
             },
             onFinish: () => {
                 console.log('Form submission finished');
@@ -103,84 +86,11 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
         });
     };
 
-    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
-
-    const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            // Set file ke form data
-            setData('foto', file);
-
-            // Buat preview untuk user experience
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setFotoPreview(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            // Reset jika tidak ada file yang dipilih
-            setData('foto', null);
-            setFotoPreview(null);
-        }
-    };
-
-    const handleDelete: FormEventHandler = (e) => {
-        e.preventDefault();
-        setDeleting(true);
-        router.delete(route('merchant.menu.destroy', menu.id), {
-            onSuccess: () => {
-                router.visit(route('merchant.menu.index'));
-            },
-            onError: (error) => {
-                console.error('Failed to delete menu:', error);
-            },
-            onFinish: () => {
-                setDeleting(false);
-            },
-        });
-    };
-
-    const { ToasterComponent } = useFlashMessages();
-
     return (
         <AppLayout breadcrumbs={breadcrumbs} userType='merchant'>
-            <Head title="Ubah Menu" />
-            <ToasterComponent />
-            <form className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={handleSubmit}>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <h1 className='text-xl py-2 font-semibold'>Ubah Menu</h1>
-                    <div className="flex items-center justify-center max-w-sm mb-2 gap-4">
-                        <Button variant="outline" asChild>
-                            <Link href={`/merchant/menu/${menu.id}`}><Eye />Lihat</Link>
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger className={cn(buttonVariants({ variant: "destructive" }))}>
-                                <Trash2 />Hapus
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Apakah Anda yakin ingin menghapus menu ini?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Aksi ini tidak dapat dibatalkan. Menu ini akan dihapus secara permanen
-                                        dan tidak dapat dipulihkan lagi.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={handleDelete}
-                                        disabled={deleting}
-                                        className={cn(buttonVariants({ variant: 'destructive' }))}
-                                    >
-                                        {deleting ?
-                                            <LoaderCircle className="h-4 w-4 animate-spin" />
-                                            : "Hapus"}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                </div>
+            <Head title="Buat Menu" />
+            <form className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={submit}>
+                <h1 className='text-xl py-2 font-semibold'>Buat Menu</h1>
                 <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 items-start gap-4 w-full'>
                     <div className='grid items-center col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
@@ -216,7 +126,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='category_id'>Kategori Menu</Label>
-                            <Select value={String(data.category_id)} onValueChange={(value) => setData('category_id', Number(value))}>
+                            <Select onValueChange={(value) => setData('category_id', Number(value))}>
                                 <SelectTrigger
                                     id='category_id'
                                     autoFocus
@@ -224,7 +134,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                                     disabled={processing}
                                     className="w-full"
                                 >
-                                    <SelectValue placeholder={String(data.category_id)} defaultValue={data.category_id} />
+                                    <SelectValue placeholder="Pilih Kategori Menu" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((category) => (
@@ -295,6 +205,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                                 id='foto'
                                 type='file'
                                 accept='image/png, image/jpeg, image/jpg, image/webp'
+                                required
                                 tabIndex={6}
                                 onChange={handleFotoChange}
                                 disabled={processing}
@@ -307,15 +218,13 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                                 {fotoPreview ? (
                                     <img
                                         src={fotoPreview}
-                                        alt="Menu Preview"
+                                        alt="Foto Preview"
                                         className="h-full w-full rounded-md object-contain aspect-video"
                                     />
                                 ) : (
-                                    <img
-                                        src={menu.foto ? `${window.location.origin}/storage/${menu.foto}` : `${window.location.origin}/images/blank-photo-icon.jpg`}
-                                        alt="Menu Image"
-                                        className="h-full w-full rounded-md object-contain aspect-video"
-                                    />
+                                    <div className="flex items-center justify-center h-full w-full rounded-md border border-dashed">
+                                        <span className="text-muted-foreground">Tidak ada gambar terpilih</span>
+                                    </div>
                                 )}
                             </AspectRatio>
                         </div>
@@ -325,10 +234,10 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                     <Button type="submit" variant={"primary"} tabIndex={3} disabled={processing}>
                         {processing ?
                             <LoaderCircle className="h-4 w-4 animate-spin" />
-                            : "Simpan"}
+                            : "Buat"}
                     </Button>
                     <Button variant={"outline"}>
-                        <Link href={`/merchant/menu/${menu.id}`} className="w-full">
+                        <Link href="/merchant/menu" className="w-full">
                             Batal
                         </Link>
                     </Button>

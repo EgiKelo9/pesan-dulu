@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('menu', MenuController::class);
         Route::put('menu/{menu}/status', [MenuController::class, 'updateStatus'])->name('menu.updateStatus');
         Route::resource('order', OrderController::class);
+        Route::put('order/{order}/status', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
     });
 
     // Admin Routes

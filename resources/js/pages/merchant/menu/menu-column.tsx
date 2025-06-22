@@ -57,6 +57,7 @@ export const MenuColumns: ColumnDef<Menu>[] = createTableColumns<Menu>({
         showEdit: true,
         showDelete: true,
         showSwitch: true,
+        showActionButton: false,
         switchLabel: "Status",
         switchKey: "status",
         getSwitchChecked: (item) => item.status === 'tersedia',

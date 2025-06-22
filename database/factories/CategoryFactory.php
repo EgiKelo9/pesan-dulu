@@ -22,4 +22,15 @@ class CategoryFactory extends Factory
             'tenant_id' => \App\Models\Tenant::factory(),
         ];
     }
+
+    public function withMenus($count = 5)
+    {
+        return $this->afterCreating(function ($category) use ($count) {
+            $menus = \App\Models\Menu::factory($count)->create([
+                'category_id' => $category->id,
+                'tenant_id' => $category->tenant_id,
+            ]);
+            $category->menus()->saveMany($menus);
+        });
+    }
 }

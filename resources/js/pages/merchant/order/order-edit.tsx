@@ -83,7 +83,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
         console.log("Submitting data:", data);
-
+        
         // Gunakan post() dengan method spoofing, bukan put()
         post(route('merchant.menu.update', menu.id), {
             // Set forceFormData ke true untuk memaksa penggunaan FormData
@@ -216,7 +216,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='category_id'>Kategori Menu</Label>
-                            <Select value={String(data.category_id)} onValueChange={(value) => setData('category_id', Number(value))}>
+                            <Select onValueChange={(value) => setData('category_id', Number(value))}>
                                 <SelectTrigger
                                     id='category_id'
                                     autoFocus
@@ -224,7 +224,7 @@ export default function EditCategory({ menu, categories }: { menu: MenuForm, cat
                                     disabled={processing}
                                     className="w-full"
                                 >
-                                    <SelectValue placeholder={String(data.category_id)} defaultValue={data.category_id} />
+                                    <SelectValue placeholder="Pilih Kategori Menu" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((category) => (
