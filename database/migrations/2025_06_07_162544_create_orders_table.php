@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('status', ['menunggu', 'diterima', 'siap', 'diambil', 'gagal'])
                 ->default('menunggu');
             $table->bigInteger('total_harga')->default(0);
+            $table->string('bukti_pembayaran');
             $table->foreignId('tenant_id')
                 ->constrained('tenants')
                 ->onDelete('cascade')

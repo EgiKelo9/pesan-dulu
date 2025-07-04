@@ -8,6 +8,8 @@ use App\Http\Controllers\Merchant\CategoryController;
 use App\Http\Controllers\Merchant\MenuController;
 use App\Http\Controllers\Merchant\OrderController;
 use App\Http\Controllers\Merchant\TenantController;
+use App\Http\Controllers\GuestController;
+
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -34,7 +36,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/category', function () {
         return Inertia::render('admin/category');
     })->name('adminCategory');
+
+    
 });
+
+
+Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
+
+Route::get('/cart', [GuestController::class, 'cart'])
+    ->name('cart'); 
+
+Route::post('/cart/add', [GuestController::class, 'add']);
+
+Route::post('/cart/update', [GuestController::class, 'updateCart'])
+    ->name('cart.update');
+
+Route::post('/cart/checkout', [GuestController::class, 'checkout'])
+    ->name('cart.checkout');
+
+Route::get('/cart/payment', [GuestController::class, 'showPayment'])
+    ->name('payment.show');
+
+
+
+// Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+//     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');
+//     // ->where('slug', '[a-z0-9\-]+');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
