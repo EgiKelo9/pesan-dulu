@@ -234,6 +234,7 @@ export default function Cart() {
               nama_pelanggan: (document.getElementById("nama_pelanggan") as HTMLInputElement)?.value || "",
               nomor_hp: (document.getElementById("nomor_hp") as HTMLInputElement)?.value || "",
               waktu_pengambilan: (document.getElementById("waktu_pengambilan") as HTMLInputElement)?.value || "",
+              // total_bayar: total,
             });
           }}  
           >

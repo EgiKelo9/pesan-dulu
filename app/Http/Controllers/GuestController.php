@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Menu;
 use App\Models\Order;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class GuestController extends Controller
@@ -164,7 +165,8 @@ class GuestController extends Controller
         $pelanggan['nomor_hp'] = $request->nomor_hp;
         $pelanggan['waktu_pengambilan'] = $request->waktu_pengambilan;
         session(['pelanggan' => $pelanggan]);
-        $cart['total_bayar'] = $request->total_bayar;
+        // $cart['total_bayar'] = $request->total_bayar;
+
 
         return redirect()->route('payment.show', [], 303);
     }
@@ -179,6 +181,7 @@ class GuestController extends Controller
         if (empty($cart) || empty($tenant) || empty($pelanggan)) {
             return redirect()->route('home')->with('message', 'Keranjang Anda kosong. Silakan tambahkan item terlebih dahulu.');
         }
+
         return Inertia::render('Payment', [
             'cart' => $cart,
             'tenant' => $tenant,
@@ -188,13 +191,8 @@ class GuestController extends Controller
 
     public function konfirmasiPembayaran(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'nama_pelanggan' => 'required|string|max:255',
-            'nomor_hp' => 'required|string|max:15',
-            'waktu_pengambilan' => 'required',
-            'total_bayar' => 'required|numeric|min:0',
-        ]);
+        // get data pelanggan dari session
+        $pelanggan = session()->get('pelanggan', []);
 
         // Ambil tenant dari session
         $tenantSlug = session()->get('tenant');
@@ -209,46 +207,78 @@ class GuestController extends Controller
             return redirect()->route('home')->with('message', 'Keranjang Anda kosong. Silakan tambahkan item terlebih dahulu.');
         }
 
-        $pelanggan = session()->get('pelanggan', []);
-
-        $imagePath = null;
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $filename = time() . '_' . $file->getClientOriginalName();
-
-            // Save to storage
-            $path = 'bukti_pembayaran/' . $filename;
-            Storage::disk('public')->put($path, $file->getContent());
-            $imagePath = $path;
-        }
-
-        // Simpan order ke database
-        $order = Order::create([
-            'tanggal_pesan' => now(),
-            'nama' => $pelanggan['nama'],
-            'telepon' => $pelanggan['nomor_hp'],
-            'waktu_diambil' => $pelanggan['waktu_pengambilan'],
-            'status' => 'menunggu',
-            // 'total_harga' => $request->total_bayar,
-            'bukti_pembayaran' => $imagePath,
-            'tenant_id' => $tenant->id,
-        ]);
-
-        // Tambahkan item ke order
+        // ngambil harga total dari cart
+        $totalHarga = 0;
         foreach ($cart as $item) {
-            $order->items()->create([
-                'menu_id' => $item['menu_id'],
-                'jumlah' => $item['jumlah'],
-                'catatan' => $item['catatan'],
-                // Tambahkan atribut lain yang diperlukan
-            ]);
+            $menu = Menu::find($item['menu_id']);
+            if ($menu) {
+                $totalHarga += $menu->harga * $item['jumlah'];
+            }
         }
 
-        // Hapus cart dari session
-        session()->forget('cart');
-        session()->forget('pelanggan');
+        $pelanggan = session()->get('pelanggan', []);
+        try {
+            $imagePath = null;
+            if ($request->hasFile('bukti_pembayaran')) {
+                $file = $request->file('bukti_pembayaran');
+                $filename = time() . '_' . $file->getClientOriginalName();
+
+                // Save to storage
+                $path = 'bukti_pembayaran/' . $filename;
+                Storage::disk('public')->put($path, $file->getContent());
+                $imagePath = $path;
+            }
+
+            // Simpan order ke database
+            $order = Order::create([
+                'tanggal_pesanan' => now(),
+                'nama' => $pelanggan['nama'],
+                'telepon' => $pelanggan['nomor_hp'],
+                'waktu_diambil' => $pelanggan['waktu_pengambilan'],
+                'status' => 'menunggu',
+                'total_harga' => $totalHarga+ 200,
+                'bukti_pembayaran' => $imagePath,
+                'tenant_id' => $tenant->id,
+            ]);
+
+
+            // Tambahkan item ke order
+            foreach ($cart as $item) {
+                $menu = Menu::find($item['menu_id']);
+                if ($menu) {
+                    // dd($menu);
+                    \Log::info('Akan attach menu', ['menu_id' => $menu->id]);
+                    $order->menus()->attach($menu->id, [
+                        'jumlah' => $item['jumlah'],
+                        'harga_satuan' => $menu->harga,
+                        'total_harga' => $menu->harga * $item['jumlah'],
+                        'catatan' => $item['catatan'],
+                    ]);
+                    \Log::info('Menu berhasil ditambahkan ke order', ['menu_id' => $menu->id]);
+                } else {
+                    \Log::error('Menu tidak ditemukan', ['menu_id' => $item['menu_id']]);
+                    throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
+                }
+            }
+
+            cookie()->queue('cart', json_encode($cart), 60 * 24 * 7); // 1 minggu
+            cookie()->queue('tenant', $tenantSlug, 60 * 24 * 7);
+            cookie()->queue('pelanggan', json_encode($pelanggan), 60 * 24 * 7);
+
+            // Hapus cart dari session
+            session()->forget('cart');
+            session()->forget('pelanggan');
+            
+            return redirect()->route('pantauPesanan', [], 303);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
         
-        return redirect()->route('home')->with('message', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi dari warung.');
+    }
+
+    public function pantauPesanan()
+    {
+
     }
 
 }

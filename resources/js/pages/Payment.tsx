@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { FiArrowLeft, FiDownload, FiImage, FiCheckCircle } from "react-icons/fi";
 import { AspectRatio } from "@radix-ui/react-aspect-ratio";
 
@@ -125,11 +125,16 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <div className="max-w-2xl mx-auto mt-10">
         <button
           className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-4 rounded-xl text-lg transition"
+          id="confirm-payment"
           disabled={!file}
             onClick={() => {
-                // Handle payment confirmation logic here
                 alert("Pembayaran telah dikonfirmasi!");
+                router.post('/cart/payment', {
+                    bukti_pembayaran: file,
+                })
             }}
+            type="submit"
+            
         >
           Konfirmasi Pembayaran
         </button>
