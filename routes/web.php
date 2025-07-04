@@ -40,10 +40,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
 });
 
-
-Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
-->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
-
 Route::get('/cart', [GuestController::class, 'cart'])
     ->name('cart'); 
 
@@ -58,7 +54,8 @@ Route::post('/cart/checkout', [GuestController::class, 'checkout'])
 Route::get('/cart/payment', [GuestController::class, 'showPayment'])
     ->name('payment.show');
 
-
+Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
 
 // Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
 //     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');
