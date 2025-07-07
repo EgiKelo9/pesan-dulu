@@ -75,16 +75,16 @@ export default function Payment() {
 
     setIsSubmitting(true);
 
-    // Create FormData
+    // Create FormData - THIS IS THE FIX
     const formData = new FormData();
     formData.append('bukti_pembayaran', file);
 
+    // Send FormData directly, not wrapped in an object
     router.post('/cart/payment', formData, {
       forceFormData: true,
       preserveScroll: true,
       onSuccess: (page) => {
         setIsSubmitting(false);
-        // The backend should redirect to status page
         console.log('Payment submitted successfully');
       },
       onError: (errors) => {
@@ -240,7 +240,13 @@ export default function Payment() {
               onClick={handleSubmit}
               type="button"
             >
-              {!file ? 'Pilih Bukti Pembayaran' : 'Konfirmasi Pembayaran'}
+              {isSubmitting 
+                ? 'Mengunggah...' 
+                : (!file 
+                  ? 'Pilih Bukti Pembayaran' 
+                  : 'Konfirmasi Pembayaran'
+                )
+              }
             </Button>
           </div>
         </div>

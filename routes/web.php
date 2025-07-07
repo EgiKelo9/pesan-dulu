@@ -75,7 +75,7 @@ Route::get('/cart/payment', [GuestController::class, 'showPayment'])
     ->name('payment.show');
 
 Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
-    ->name('payment.confirm');
+    ->name('cart.payment');
 
 Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan'])
     ->name('pantauPesanan');
