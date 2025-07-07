@@ -54,6 +54,11 @@ class Order extends Model
         return $this->belongsTo(Tenant::class, 'tenant_id');
     }
 
+    public function report(): BelongsTo
+    {
+        return $this->hasMany(Report::class, 'order_id');
+    }
+
     public function menus(): BelongsToMany
     {
         return $this->belongsToMany(Menu::class, 'order_menu', 'order_id', 'menu_id')

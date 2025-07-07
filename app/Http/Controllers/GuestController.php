@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\Category;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Menu;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Validation\ValidationException;
 
 class GuestController extends Controller
@@ -318,24 +320,46 @@ class GuestController extends Controller
             cookie()->queue('pelanggan', json_encode($pelanggan), 60 * 24 * 7);
 
             // Simpan id_order ke session
-            session(['order_id' => $order->id]);
+            // session(['order_id' => $order->id]);
             // dd(session('order_id'));
+
+            // Simpan id_order ke cookies
+            // Ambil cookie existing, kalau belum ada, inisialisasi array kosong
+            $existingOrders = json_decode(Cookie::get('order_ids', '[]'), true);
+
+            // Tambahkan order_id baru
+            $existingOrders[] = $order->id;
+
+            // Simpan kembali ke cookie (dalam bentuk JSON)
+            Cookie::queue( 'order_ids', json_encode($existingOrders), 60*24*30 );
 
             // Hapus cart dari session
             session()->forget('cart');
             session()->forget('pelanggan');
             
-            return redirect()->route('pantauPesanan', [], 303);
+            return redirect()->route('pantauPesanan', ['id_order' => $order->id], 303);
         } catch (\Throwable $th) {
             //throw $th;
         }
         
     }
 
-    public function pantauPesanan()
+    public function pantauPesanan($id_order)
     {
         // Cek apakah ada order_id di session
-        $id_order = session()->get('order_id', []);
+        // $id_order = 12;
+        $orderIds = json_decode(Cookie::get('order_ids', '[]'), true);
+        // var_dump($orderIds);
+        // $id_order = session()->get('order_id', []);
+        if (!is_array($orderIds)) {
+            $orderIds = [];
+        }
+
+        if (!in_array($id_order, $orderIds)) {
+            dd($orderIds);
+            return redirect()->route('home')->with('message', 'Maaf Id order tidak ditemukan');
+        }
+
         if (empty($id_order)) {
             dd($id_order);
             return redirect()->route('home')->with('message', 'Tidak ada pesanan yang sedang dipantau.');
@@ -351,10 +375,51 @@ class GuestController extends Controller
         $orderMenus = $order->menus()->withPivot(['jumlah', 'harga_satuan', 'total_harga', 'catatan'])->get();
         $order->order_menus = $orderMenus;
 
+        $riwayatOrders = Order::with(['tenant', 'menus'])
+        ->whereIn('id', $orderIds)
+        ->get()
+        ->map(function ($o) {
+            return [
+                'id' => $o->id,
+                'tenant' => $o->tenant ? $o->tenant->nama : '-',
+                'total_harga' => $o->total_harga,
+                'jumlah_item' => $o->menus->count(),
+                'tanggal_pesanan' => $o->tanggal_pesanan,
+                'status' => $o->status,
+            ];
+        });
+
         // dd($order);
         return Inertia::render('MonitorOrder', [
             'order' => $order,
+            'riwayat' => $riwayatOrders,
         ]);
+    }
+
+    public function buatLaporan($id_order, Request $request){
+        // Decode JSON payload
+        $data = json_decode($request->getContent(), true);
+
+        // Validasi data minimal
+        if (!$data || !isset($data['categories'])) {
+            dd("jir gak ada data");
+            return response()->json(['error' => 'Invalid data'], 400);
+        }
+
+        // dd($data, $id_order);
+
+        // Simpan ke database
+        $report = Report::create([
+            'order_id' => $id_order,
+            'categories' => json_encode($data['categories']),
+            'reason' => $data['reason'] ?? '',
+        ]);
+            
+        \Log::info('LAPORAN - Report saved:', [
+            'report' => $report->toArray()
+        ]);
+        return response()->json(['message' => 'Laporan berhasil disimpan']);
+        // dd($request, $id_order);
     }
 
 }

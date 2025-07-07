@@ -1,5 +1,5 @@
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { RiwayatDropdown } from "@/components/tombol-riwayat"; // atau sesuaikan path-nya
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
+
+type RiwayatItem = {
+  id: number;
+  tenant: string;
+  total_harga: number;
+  jumlah_item: number;
+  tanggal_pesanan: string;
+  status: string;
+};
 
 type Pivot = {
   order_id: number;
@@ -59,9 +81,10 @@ type Order = {
 type PageProps = {
   order?: Order;
   tenant?: any;
+  riwayat: RiwayatItem[];
 };
 
-export default function MonitorOrder() {
+export default function MonitorOrder({ riwayat }: { riwayat: RiwayatItem[] }) {
   const statusColor = {
     menunggu: "bg-amber-600 text-white",
     diterima: "bg-blue-600 text-white",
@@ -93,6 +116,8 @@ export default function MonitorOrder() {
     });
   }, [orderMenus]);
 
+  console.log(riwayat);
+
   // Hitung subtotal dengan pengecekan aman
   const subtotal = orderMenus.reduce(
     (sum, item) => sum + (item.pivot?.total_harga ?? 0),
@@ -109,9 +134,34 @@ export default function MonitorOrder() {
     );
   }
 
+    const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+  // State untuk alasan
+  const [reason, setReason] = React.useState("");
+
+  // Data kategori
+  const categories = [
+    { id: "1", label: "Pesanan tidak lengkap" },
+    { id: "2", label: "Pesanan salah" },
+    { id: "3", label: "Kualitas makanan buruk" },
+    { id: "4", label: "Pesanan terlambat" },
+    { id: "5", label: "Porsi kurang dari seharusnya" },
+    { id: "6", label: "Permintaan khusus diabaikan" },
+    { id: "7", label: "Lainnya" },
+  ];
+
+  // Handler toggle centang
+  const toggleCategory = (id: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(id)
+        ? prev.filter(cat => cat !== id)
+        : [...prev, id]
+    );
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
+        {/* Tombol Back */}
         <Button
           size="icon"
           variant="outline"
@@ -150,8 +200,135 @@ export default function MonitorOrder() {
             />
           </svg>
         </Button>
+
+        {/* Judul */}
         <div className="flex flex-col items-center flex-1">
-          <h1 className="text-2xl font-bold ">Rincian Pesanan</h1>
+          <h1 className="text-2xl font-bold">Rincian Pesanan</h1>
+        </div>
+
+        {/* Tombol Lapor */}
+        <div className="flex gap-2">
+          <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="destructive">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h18.78a1.5 1.5 0 001.29-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v4m0 4h.01"
+            />
+          </svg>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h18.78a1.5 1.5 0 001.29-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v4m0 4h.01"
+              />
+            </svg>
+            Laporkan
+          </DialogTitle>
+            <DialogDescription>
+              Jumlah Pesanan {orderMenus.length}, Total: {new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+              }).format(total)}
+            </DialogDescription>
+            <DialogDescription>
+              Pesanan Dibuat Pada : {order.tanggal_pesanan}
+            </DialogDescription>
+            <DialogDescription>
+              Status Pesanan : {order.status && order.status
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')}
+            </DialogDescription>
+          <Separator/>
+        </DialogHeader>
+
+        {/* List Checkbox */}
+          <DialogDescription className="font-bold text-black-600">
+              Masukan Kategori Laporan
+          </DialogDescription>
+          <DialogDescription>
+            Pilih kategori dan tambahkan alasan jika diperlukan.
+          </DialogDescription>
+        <div className="grid gap-3">
+          {categories.map((category) => (
+            <div key={category.id} className="flex items-center gap-3">
+              <Checkbox
+                className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
+                id={category.id}
+                checked={selectedCategories.includes(category.id)}
+                onCheckedChange={() => toggleCategory(category.id)}
+              />
+              <Label htmlFor={category.id} className="font-light">{category.label}</Label>
+            </div>
+          ))}
+        </div>
+        {/* Alasan */}
+        <div className="grid gap-3">
+          <Label htmlFor="reason">
+            <span className="font-bold">Alasan</span>{" "}
+            <span className="font-normal">(Opsional)</span>
+          </Label>
+          <Textarea
+            id="reason"
+            placeholder="Masukan alasan di sini"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => {
+                router.post(`/laporan/${order.id}`, {
+                  categories: selectedCategories,
+                  reason: reason,
+                });
+              }}
+            >
+              Lapor
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+          {/* Tombol Riwayat */}
+          <RiwayatDropdown riwayat={props.riwayat} />
         </div>
       </div>
       <hr />
@@ -251,8 +428,8 @@ export default function MonitorOrder() {
               <div className="mt-4 capitalize">
                 <Button
                   className={`w-full ${statusColor[order.status] || "bg-slate-400 text-white"}`}
-                  disabled
-                >
+                  disabled={true}
+                  >
                   {order.status &&
                     order.status
                       .split(' ')
@@ -266,3 +443,5 @@ export default function MonitorOrder() {
     </div>
   );
 }
+
+                  

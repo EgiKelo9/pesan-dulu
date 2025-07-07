@@ -74,8 +74,11 @@ Route::get('/cart/payment', [GuestController::class, 'showPayment'])
 Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
     ->name('payment.confirm');
 
-Route::get('/status_pesanan', [GuestController::class, 'pantauPesanan'])
+Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan'])
     ->name('pantauPesanan');
+
+Route::post('/laporan/{id_order}', [GuestController::class, 'buatLaporan'])
+    ->name('buatLaporan');
 
 Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
 ->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
