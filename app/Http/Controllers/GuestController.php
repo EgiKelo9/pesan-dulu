@@ -18,7 +18,7 @@ class GuestController extends Controller
      * Display the specified resource.
      *
      * @param  string  $slug
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response
      */
     public function tampilkanWarung($slug)
     {
@@ -38,7 +38,8 @@ class GuestController extends Controller
         if ($this->slug) {
             if ($this->slug !== $slug) {
                 // Jika slug berubah, reset cart
-                session()->forget('cart', 'tenant');
+                session()->forget('cart');
+                session()->forget('tenant');
                 $this->slug = $slug;
                 session(['tenant' => $this->slug]);
             }
@@ -191,6 +192,7 @@ class GuestController extends Controller
 
     public function konfirmasiPembayaran(Request $request)
     {
+        dd(session()->all());
         // get data pelanggan dari session
         $pelanggan = session()->get('pelanggan', []);
 
@@ -247,16 +249,13 @@ class GuestController extends Controller
                 $menu = Menu::find($item['menu_id']);
                 if ($menu) {
                     // dd($menu);
-                    \Log::info('Akan attach menu', ['menu_id' => $menu->id]);
                     $order->menus()->attach($menu->id, [
                         'jumlah' => $item['jumlah'],
                         'harga_satuan' => $menu->harga,
                         'total_harga' => $menu->harga * $item['jumlah'],
                         'catatan' => $item['catatan'],
                     ]);
-                    \Log::info('Menu berhasil ditambahkan ke order', ['menu_id' => $menu->id]);
                 } else {
-                    \Log::error('Menu tidak ditemukan', ['menu_id' => $item['menu_id']]);
                     throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
                 }
             }
@@ -274,6 +273,32 @@ class GuestController extends Controller
             //throw $th;
         }
         
+    }
+
+    public function deleteItemCart(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'index' => 'required|integer|min:0'
+        ]);
+        
+        $cart = session()->get('cart', []);
+        
+        // Validate that the index exists
+        if (!isset($cart[$request->index])) {
+            return redirect()->back()->withErrors(['error' => 'Item tidak ditemukan di keranjang.']);
+        }
+        
+        // Remove the item from cart array
+        unset($cart[$request->index]);
+        
+        // Re-index the array to maintain proper indexing
+        $cart = array_values($cart);
+        
+        // Update session
+        session(['cart' => $cart]);
+        
+        return redirect()->back()->with('message', 'Item berhasil dihapus dari keranjang!');
     }
 
     public function pantauPesanan()

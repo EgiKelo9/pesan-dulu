@@ -65,6 +65,9 @@ Route::post('/cart/add', [GuestController::class, 'add']);
 Route::post('/cart/update', [GuestController::class, 'updateCart'])
     ->name('cart.update');
 
+Route::delete('/cart/delete', [GuestController::class, 'deleteItemCart'])
+    ->name('cart.delete');
+
 Route::post('/cart/checkout', [GuestController::class, 'checkout'])
     ->name('cart.checkout');
 
