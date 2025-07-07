@@ -23,6 +23,7 @@ class OrderFactory extends Factory
             'telepon' => fake()->phoneNumber(),
             'status' => fake()->randomElement(['menunggu', 'diterima', 'siap', 'diambil', 'gagal']),
             'total_harga' => fake()->numberBetween(10, 300) * 1000,
+            'bukti_pembayaran' => 'bukti_pembayaran/1750666255_VBG WTA 2025.jpg',
             'tenant_id' => \App\Models\Tenant::factory(),
         ];
     }

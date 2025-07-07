@@ -6,10 +6,12 @@ use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\TenantController as AdminTenantController;
-use App\Http\Controllers\Merchant\TenantController as TenantController;
 use App\Http\Controllers\Merchant\CategoryController;
 use App\Http\Controllers\Merchant\MenuController;
 use App\Http\Controllers\Merchant\OrderController;
+use App\Http\Controllers\Merchant\TenantController;
+use App\Http\Controllers\GuestController;
+
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -51,7 +53,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('tenant.updateStatus');
     });
 
+
+    
 });
+
+Route::get('/cart', [GuestController::class, 'cart'])
+    ->name('cart'); 
+
+Route::post('/cart/add', [GuestController::class, 'add']);
+
+Route::post('/cart/update', [GuestController::class, 'updateCart'])
+    ->name('cart.update');
+
+Route::post('/cart/checkout', [GuestController::class, 'checkout'])
+    ->name('cart.checkout');
+
+Route::get('/cart/payment', [GuestController::class, 'showPayment'])
+    ->name('payment.show');
+
+Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
+    ->name('payment.confirm');
+
+Route::get('/status_pesanan', [GuestController::class, 'pantauPesanan'])
+    ->name('pantauPesanan');
+
+Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
+
+// Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+//     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');
+//     // ->where('slug', '[a-z0-9\-]+');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
