@@ -159,14 +159,16 @@ export default function WarungPublik({ tenant, categories, cart}: { tenant: Tena
                       className="rounded-lg object-fill"
                     />
                   </AspectRatio>
-                  <h3 className="font-semibold mt-2">{menu.nama}</h3>
-                  <p className="text-sm mb-2">
-                    Rp{menu.harga.toLocaleString()}
-                  </p>
+                  <h3 className="mt-2">{menu.nama}</h3>
                   <Dialog>
                     <form>
                       <DialogTrigger asChild>
-                        <Button variant="outline">Open Dialog</Button>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-lg font-bold text-gray-900">
+                            Rp{menu.harga.toLocaleString()}
+                          </span>
+                          <Button variant="outline" type='button'>Tambah</Button>
+                        </div>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
