@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Merchant;
 
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -100,6 +101,6 @@ class OrderController extends Controller
         $order->update([
             'status' => $request->status
         ]);
-        return redirect()->route('merchant.order.index')->with('success', "Status pesanan {$order->id} diatur menjadi {$order->status}.");
+        return redirect()->back()->with('success', "Status pesanan {$order->id} diatur menjadi {$order->status}.");
     }
 }

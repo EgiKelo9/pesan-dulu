@@ -124,7 +124,9 @@ export default function EditCategory({ category }: { category: CategoryForm }) {
                     </div>
                 </div>
                 <div className='grid gap-4 mt-2'>
-                    <Label htmlFor='nama'>Nama Kategori</Label>
+                    <Label htmlFor='nama'>Nama Kategori
+                        <span className='text-red-500'>*</span>
+                    </Label>
                     <Input
                         id='nama'
                         type='text'
@@ -140,7 +142,9 @@ export default function EditCategory({ category }: { category: CategoryForm }) {
                     <InputError message={errors.nama} />
                 </div>
                 <div className='grid gap-4 mt-2'>
-                    <Label htmlFor='deskripsi'>Deskripsi Kategori</Label>
+                    <Label htmlFor='deskripsi'>Deskripsi Kategori
+                        <span className='text-red-500'>*</span>
+                    </Label>
                     <Textarea
                         id='deskripsi'
                         required
@@ -160,10 +164,12 @@ export default function EditCategory({ category }: { category: CategoryForm }) {
                             <LoaderCircle className="h-4 w-4 animate-spin" />
                             : "Simpan"}
                     </Button>
-                    <Button variant={"outline"}>
-                        <Link href={`/merchant/category/${category.id}`} className="w-full">
-                            Batal
-                        </Link>
+                    <Button 
+                        variant={"outline"} 
+                        type="button" 
+                        onClick={() => window.history.back()}
+                    >
+                        Batal
                     </Button>
                 </div>
             </form>

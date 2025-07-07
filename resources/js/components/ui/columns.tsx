@@ -125,6 +125,13 @@ export function createTableColumns<T extends BaseEntity>(
 
   // Tambahkan kolom-kolom data
   config.dataColumns.forEach((columnConfig) => {
+    // Helper function to get nested property values using dot notation
+    const getNestedValue = (obj: any, path: string) => {
+      return path.split('.').reduce((prev, curr) => {
+        return prev ? prev[curr] : null
+      }, obj)
+    }
+
     const column: ColumnDef<T> = {
       accessorKey: columnConfig.key,
       header: columnConfig.sortable !== false ? // Default sortable
@@ -148,21 +155,22 @@ export function createTableColumns<T extends BaseEntity>(
         ) :
         columnConfig.header,
       cell: ({ row }) => {
+        const value = getNestedValue(row.original, columnConfig.key);
         switch (columnConfig.type) {
           case "text":
             return (
               <span className="truncate max-w-96">
-                {row.getValue(columnConfig.key)}
+                {value}
               </span>
             );
           case "date":
             return (
               <span>
-                {new Date(row.getValue(columnConfig.key)).getDate()}
+                {new Date(value).getDate()}
               </span>
             );
           case "time":
-            const timeValue = row.getValue(columnConfig.key) as Date | string;
+            const timeValue = value as Date | string;
             const dateTime = new Date(timeValue);
             if (!isNaN(dateTime.getTime())) {
               return (
@@ -173,7 +181,7 @@ export function createTableColumns<T extends BaseEntity>(
             }
             return <span>{String(timeValue)} WITA</span>;
           case "image":
-            const imagePath = row.getValue(columnConfig.key) as string
+            const imagePath = value as string
             return (
               <div className="w-10">
                 <AspectRatio ratio={1}>
@@ -186,7 +194,7 @@ export function createTableColumns<T extends BaseEntity>(
               </div>
             );
           case "currency":
-            const price = row.getValue(columnConfig.key) as number
+            const price = value as number
             return (
               <span className="text-right">
                 {new Intl.NumberFormat('id-ID', {
@@ -196,17 +204,23 @@ export function createTableColumns<T extends BaseEntity>(
               </span>
             );
           case "badge":
-            const status = row.getValue(columnConfig.key) as string
+            const status = value as string
             return (
               <Badge
-                variant={status === "tersedia" ? "primary" : "destructive"}
+                variant={
+                  ["tersedia", "aktif", "selesai", "success"].includes(status?.toLowerCase())
+                    ? "primary"
+                    : ["tidak tersedia", "nonaktif", "batal", "gagal", "error"].includes(status?.toLowerCase())
+                      ? "destructive"
+                      : "secondary"
+                }
                 className="capitalize"
               >
                 {status}
               </Badge>
             );
           case "list":
-            const items = row.getValue(columnConfig.key);
+            const items = value;
             return (
               <span>
                 {Array.isArray(items)
@@ -350,19 +364,19 @@ export function createTableColumns<T extends BaseEntity>(
 
           // Make the API call to update the status
           router.put(route(actionConfig.basePath + actionConfig.actionButtonPath, item.id), {
-              [actionConfig.actionButtonKey]: nextValue
-            }, {
-              preserveState: true,
-              preserveScroll: true,
-              onSuccess: () => {
-                console.log('Status updated successfully');
-                router.reload();
-              },
-              onError: (error) => {
-                console.error('Failed to update status:', error);
-                alert('Terjadi kesalahan saat mengubah status. Silakan coba lagi.');
-              }
+            [actionConfig.actionButtonKey]: nextValue
+          }, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+              console.log('Status updated successfully');
+              router.reload();
+            },
+            onError: (error) => {
+              console.error('Failed to update status:', error);
+              alert('Terjadi kesalahan saat mengubah status. Silakan coba lagi.');
             }
+          }
           );
         };
 
@@ -400,7 +414,9 @@ export function createTableColumns<T extends BaseEntity>(
                       {actionConfig.switchLabel || 'Status'}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator />
+                  {(actionConfig.showSwitch !== false || actionConfig.showActionButton !== false) && (
+                    <DropdownMenuSeparator />
+                  )}
                   {actionConfig.showEdit !== false && (
                     <DropdownMenuItem onClick={handleEdit}>
                       <Pencil className="h-4 w-4 mr-1" />

@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { House, Store, LayoutGrid, Dessert, ScrollText } from 'lucide-react';
+import { House, Users, Store, TriangleAlert, LayoutGrid, Dessert, ScrollText } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const merchantNavItems: NavItem[] = [
@@ -42,24 +42,19 @@ const adminNavItems: NavItem[] = [
         icon: House,
     },
     {
+        title: 'Pedagang',
+        href: '/merchant',
+        icon: Users,
+    },
+    {
         title: 'Warung',
         href: '/tenant',
         icon: Store,
     },
     {
-        title: 'Kategori',
-        href: '/category',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Menu',
-        href: '/menu',
-        icon: Dessert,
-    },
-    {
-        title: 'Pesanan',
-        href: '/order',
-        icon: ScrollText,
+        title: 'Laporan',
+        href: '/report',
+        icon: TriangleAlert,
     },
 ];
 

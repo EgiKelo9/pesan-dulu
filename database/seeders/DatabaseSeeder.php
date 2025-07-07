@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        User::factory(1, ['role' => 'admin'])->create();
         Tenant::factory(4)->create();
         Category::factory(20)->recycle([Tenant::all()])->withMenus()->create();
         Order::factory(50)->recycle([Tenant::all()])->withMenus()->create();

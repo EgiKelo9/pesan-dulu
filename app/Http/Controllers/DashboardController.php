@@ -16,7 +16,7 @@ class DashboardController extends Controller
             }
             return Inertia::render('merchant/dashboard');
         } else {
-            return redirect()->route('login')->with('error', 'Anda tidak memiliki akses ke beranda merchant.');
+            return redirect()->route('login')->with('error', 'Anda tidak memiliki akses ke beranda pedagang.');
         }
     }
 

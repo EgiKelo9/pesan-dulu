@@ -54,7 +54,9 @@ export default function CreateCategory() {
             <form className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={submit}>
                 <h1 className='text-xl py-2 font-semibold'>Buat Kategori Menu</h1>
                 <div className='grid gap-4 mt-2'>
-                    <Label htmlFor='nama'>Nama Kategori</Label>
+                    <Label htmlFor='nama'>Nama Kategori
+                        <span className='text-red-500'>*</span>
+                    </Label>
                     <Input
                         id='nama'
                         type='text'
@@ -70,7 +72,9 @@ export default function CreateCategory() {
                     <InputError message={errors.nama} />
                 </div>
                 <div className='grid gap-4 mt-2'>
-                    <Label htmlFor='deskripsi'>Deskripsi Kategori</Label>
+                    <Label htmlFor='deskripsi'>Deskripsi Kategori
+                        <span className='text-red-500'>*</span>
+                    </Label>
                     <Textarea
                         id='deskripsi'
                         required
@@ -90,10 +94,12 @@ export default function CreateCategory() {
                             <LoaderCircle className="h-4 w-4 animate-spin" />
                         : "Buat"}
                     </Button>
-                    <Button variant={"outline"}>
-                        <Link href="/merchant/category" className="w-full">
-                            Batal
-                        </Link>
+                    <Button 
+                        variant={"outline"} 
+                        type="button" 
+                        onClick={() => window.history.back()}
+                    >
+                        Batal
                     </Button>
                 </div>
             </form>

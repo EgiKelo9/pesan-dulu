@@ -8,7 +8,7 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                <AvatarImage src={user.avatar ?? window.location.origin + '/images/blank-profile-picture.webp'} alt={user.nama} />
+                <AvatarImage src={user.avatar ? window.location.origin + '/storage' + user.avatar : window.location.origin + '/images/blank-profile-picture.webp'} alt={user.nama} />
                 <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                     {getInitials(user.nama)}
                 </AvatarFallback>

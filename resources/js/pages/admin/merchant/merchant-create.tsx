@@ -8,60 +8,54 @@ import { useFlashMessages } from '@/hooks/use-flash-messages';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import InputError from '@/components/input-error';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Pedagang',
-        href: '/merchant/dashboard',
+        title: 'Admin',
+        href: '/admin/dashboard',
     },
     {
-        title: 'Warung',
-        href: '/merchant/tenant',
+        title: 'Pedagang',
+        href: '/admin/merchant',
     },
     {
         title: 'Buat',
-        href: '/merchant/tenant/create',
+        href: '/admin/merchant/create',
     },
 ];
 
-type TenantForm = {
+type UserForm = {
     nama: string;
     telepon: string | number;
-    alamat: string;
-    qris: File | null;
-    jam_buka: number | string;
-    jam_tutup: number | string;
+    email: string;
+    avatar?: File | null;
+    password: string;
+    password_confirmation: string;
 };
 
-type UserData = {
-    nama: string;
-    telepon: string | number;
-}
-
-export default function CreateTenant({ user }: { user: UserData }) {
-    const { data, setData, post, processing, errors, reset, cancel } = useForm<Required<TenantForm>>({
-        nama: 'Warung ' + user.nama.split(' ')[0],
-        telepon: user.telepon,
-        alamat: '',
-        qris: null as File | null,
-        jam_buka: '',
-        jam_tutup: '',
+export default function CreateMerchant() {
+    const { data, setData, post, processing, errors, reset, cancel } = useForm<Required<UserForm>>({
+        nama: '',
+        telepon: '',
+        email: '',
+        avatar: null,
+        password: '',
+        password_confirmation: '',
     });
 
-    const [qrisPreview, setQrisPreview] = useState<string | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-    const handleQrisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setData('qris', file);
+            setData('avatar', file);
 
             // Create preview
             const reader = new FileReader();
             reader.onload = (e) => {
-                setQrisPreview(e.target?.result as string);
+                setAvatarPreview(e.target?.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -69,7 +63,7 @@ export default function CreateTenant({ user }: { user: UserData }) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('merchant.tenant.store'), {
+        post(route('admin.merchant.store'), {
             forceFormData: true,
             onSuccess: () => {
                 reset();
@@ -83,15 +77,15 @@ export default function CreateTenant({ user }: { user: UserData }) {
     const { ToasterComponent } = useFlashMessages();
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} userType='merchant'>
-            <Head title="Buat Warung" />
+        <AppLayout breadcrumbs={breadcrumbs} userType='admin'>
+            <Head title="Buat Pedagang" />
             <ToasterComponent />
             <form className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={submit}>
-                <h1 className='text-xl py-2 font-semibold'>Buat Warung</h1>
+                <h1 className='text-xl py-2 font-semibold'>Buat Pedagang</h1>
                 <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 items-start gap-4 w-full'>
                     <div className='grid items-center col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='nama'>Nama Warung
+                            <Label htmlFor='nama'>Nama Pedagang
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Input
@@ -103,27 +97,10 @@ export default function CreateTenant({ user }: { user: UserData }) {
                                 value={data.nama}
                                 onChange={(e) => setData('nama', e.target.value)}
                                 disabled={processing}
-                                placeholder='Masukkan nama warung Anda'
+                                placeholder='Masukkan Nama Pedagang'
                                 className="w-full"
                             />
                             <InputError message={errors.nama} />
-                        </div>
-                        <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='alamat'>Alamat Warung
-                                <span className='text-red-500'>*</span>
-                            </Label>
-                            <Textarea
-                                id='alamat'
-                                required
-                                autoFocus
-                                tabIndex={2}
-                                value={data.alamat}
-                                onChange={(e) => setData('alamat', e.target.value)}
-                                disabled={processing}
-                                placeholder='Masukkan alamat warung Anda'
-                                className="w-full"
-                            />
-                            <InputError message={errors.alamat} />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='telepon'>Nomor Telepon
@@ -134,91 +111,91 @@ export default function CreateTenant({ user }: { user: UserData }) {
                                 type='tel'
                                 required
                                 autoFocus
-                                tabIndex={3}
+                                tabIndex={2}
                                 value={data.telepon}
                                 onChange={(e) => setData('telepon', e.target.value)}
                                 disabled={processing}
-                                placeholder='Masukkan nomor telepon warung Anda'
+                                placeholder='Masukkan Nomor Telepon Pedagang'
                                 className="w-full"
                             />
                             <InputError message={errors.telepon} />
                         </div>
-                        <div className='relative grid gap-4 mt-2 col-span-1'>
-                            <Label htmlFor='jambuka'>Waktu Buka
+                        <div className='grid gap-4 mt-2 col-span-2'>
+                            <Label htmlFor='email'>Alamat Email
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Input
-                                id='jambuka'
-                                type='time'
-                                placeholder="HH:MM"
+                                id='email'
+                                type='email'
+                                required
+                                autoFocus
+                                tabIndex={3}
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                disabled={processing}
+                                placeholder="Masukkan Alamat Email Pedagang"
+                                className="w-full"
+                            />
+                            <InputError message={errors.email} />
+                        </div>
+                        <div className='grid gap-4 mt-2 col-span-2'>
+                            <Label htmlFor='password'>Kata Sandi
+                                <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input
+                                id='password'
+                                type='password'
                                 required
                                 autoFocus
                                 tabIndex={4}
-                                value={data.jam_buka}
-                                onChange={(e) => setData('jam_buka', e.target.value)}
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
                                 disabled={processing}
-                                className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
+                                placeholder="Masukkan Kata Sandi Pedagang"
+                                className="w-full"
                             />
-                            <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
-                                WITA
-                            </span>
-                            <InputError message={errors.jam_buka} />
+                            <InputError message={errors.password} />
                         </div>
-                        <div className='relative grid gap-4 mt-2 col-span-1'>
-                            <Label htmlFor='jamtutup'>Waktu Tutup
+                        <div className='grid gap-4 mt-2 col-span-2'>
+                            <Label htmlFor='password_confirmation'>Konfirmasi Kata Sandi
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Input
-                                id='jamtutup'
-                                type='time'
-                                placeholder="HH:MM"
+                                id='password_confirmation'
+                                type='password'
                                 required
                                 autoFocus
+                                autoComplete='new-password'
                                 tabIndex={5}
-                                value={data.jam_tutup}
-                                onChange={(e) => setData('jam_tutup', e.target.value)}
+                                value={data.password_confirmation}
+                                onChange={(e) => setData('password_confirmation', e.target.value)}
                                 disabled={processing}
-                                className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
-                            />
-                            <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
-                                WITA
-                            </span>
-                            <InputError message={errors.jam_tutup} />
-                        </div>
-                        <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='tautan'>Tautan</Label>
-                            <Input
-                                id='tautan'
-                                type='text'
-                                disabled
-                                placeholder='Tautan diperoleh ketika warung telah terdaftar'
+                                placeholder="Masukkan Kata Sandi Pedagang"
                                 className="w-full"
                             />
+                            <InputError message={errors.password_confirmation} />
                         </div>
                     </div>
                     <div className='grid items-start col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='qris'>Kode QRIS
-                                <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label htmlFor='avatar'>Foto Profil</Label>
                             <Input
-                                id='qris'
+                                id='avatar'
                                 type='file'
                                 accept='image/png, image/jpeg, image/jpg, image/webp'
-                                required
                                 tabIndex={6}
-                                onChange={handleQrisChange}
+                                onChange={handleAvatarChange}
                                 disabled={processing}
                                 className="w-full"
                             />
-                            <InputError message={errors.qris} />
+                            <InputError message={errors.avatar} />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <AspectRatio ratio={16 / 9} className="bg-muted">
-                                {qrisPreview ? (
+                                {avatarPreview ? (
                                     <img
-                                        src={qrisPreview}
-                                        alt="QRIS Preview"
+                                        src={avatarPreview}
+                                        alt="Avatara Preview"
                                         className="h-full w-full rounded-md object-contain aspect-video"
                                     />
                                 ) : (

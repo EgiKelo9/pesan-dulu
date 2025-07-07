@@ -11,19 +11,26 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import InputError from '@/components/input-error';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Pedagang',
-        href: '/merchant/dashboard',
+        title: 'Admin',
+        href: '/admin/dashboard',
     },
     {
         title: 'Warung',
-        href: '/merchant/tenant',
+        href: '/admin/tenant',
     },
     {
         title: 'Buat',
-        href: '/merchant/tenant/create',
+        href: '/admin/tenant/create',
     },
 ];
 
@@ -34,21 +41,24 @@ type TenantForm = {
     qris: File | null;
     jam_buka: number | string;
     jam_tutup: number | string;
+    user_id: number;
 };
 
 type UserData = {
+    id: number;
     nama: string;
     telepon: string | number;
 }
 
-export default function CreateTenant({ user }: { user: UserData }) {
+export default function CreateTenant({ users }: { users: UserData[] }) {
     const { data, setData, post, processing, errors, reset, cancel } = useForm<Required<TenantForm>>({
-        nama: 'Warung ' + user.nama.split(' ')[0],
-        telepon: user.telepon,
+        nama: '',
+        telepon: '',
         alamat: '',
         qris: null as File | null,
         jam_buka: '',
         jam_tutup: '',
+        user_id: 0,
     });
 
     const [qrisPreview, setQrisPreview] = useState<string | null>(null);
@@ -69,7 +79,7 @@ export default function CreateTenant({ user }: { user: UserData }) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('merchant.tenant.store'), {
+        post(route('admin.tenant.store'), {
             forceFormData: true,
             onSuccess: () => {
                 reset();
@@ -83,13 +93,44 @@ export default function CreateTenant({ user }: { user: UserData }) {
     const { ToasterComponent } = useFlashMessages();
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} userType='merchant'>
+        <AppLayout breadcrumbs={breadcrumbs} userType='admin'>
             <Head title="Buat Warung" />
             <ToasterComponent />
             <form className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={submit}>
                 <h1 className='text-xl py-2 font-semibold'>Buat Warung</h1>
                 <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 items-start gap-4 w-full'>
                     <div className='grid items-center col-span-2 gap-4'>
+                        <div className='grid gap-4 mt-2 col-span-2'>
+                            <Label htmlFor='pedagang'>Nama Pedagang
+                                <span className='text-red-500'>*</span>
+                            </Label>
+                            <Select onValueChange={(value) => {
+                                const user = users.find(user => user.id === Number(value))
+                                setData('user_id', Number(value))
+                                setData('nama', 'Warung ' + user!.nama)
+                                setData('telepon', user!.telepon)
+                            }}>
+                                <SelectTrigger
+                                    id='user_id'
+                                    autoFocus
+                                    tabIndex={3}
+                                    disabled={processing}
+                                    className="w-full"
+                                >
+                                    <SelectValue placeholder="Pilih Pedagang" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {users.map((user) => (
+                                        <SelectItem
+                                            key={user.id}
+                                            value={String(user.id)}
+                                        >
+                                            {user.nama}
+                                        </SelectItem>))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.user_id} />
+                        </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <Label htmlFor='nama'>Nama Warung
                                 <span className='text-red-500'>*</span>
@@ -143,57 +184,49 @@ export default function CreateTenant({ user }: { user: UserData }) {
                             />
                             <InputError message={errors.telepon} />
                         </div>
-                        <div className='relative grid gap-4 mt-2 col-span-1'>
-                            <Label htmlFor='jambuka'>Waktu Buka
-                                <span className='text-red-500'>*</span>
-                            </Label>
-                            <Input
-                                id='jambuka'
-                                type='time'
-                                placeholder="HH:MM"
-                                required
-                                autoFocus
-                                tabIndex={4}
-                                value={data.jam_buka}
-                                onChange={(e) => setData('jam_buka', e.target.value)}
-                                disabled={processing}
-                                className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
-                            />
-                            <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
-                                WITA
-                            </span>
-                            <InputError message={errors.jam_buka} />
-                        </div>
-                        <div className='relative grid gap-4 mt-2 col-span-1'>
-                            <Label htmlFor='jamtutup'>Waktu Tutup
-                                <span className='text-red-500'>*</span>
-                            </Label>
-                            <Input
-                                id='jamtutup'
-                                type='time'
-                                placeholder="HH:MM"
-                                required
-                                autoFocus
-                                tabIndex={5}
-                                value={data.jam_tutup}
-                                onChange={(e) => setData('jam_tutup', e.target.value)}
-                                disabled={processing}
-                                className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
-                            />
-                            <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
-                                WITA
-                            </span>
-                            <InputError message={errors.jam_tutup} />
-                        </div>
-                        <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='tautan'>Tautan</Label>
-                            <Input
-                                id='tautan'
-                                type='text'
-                                disabled
-                                placeholder='Tautan diperoleh ketika warung telah terdaftar'
-                                className="w-full"
-                            />
+                        <div className='grid grid-cols-2 col-span-2 gap-4 items-start'>
+                            <div className='relative grid gap-4 mt-2 col-span-1'>
+                                <Label htmlFor='jambuka'>Waktu Buka
+                                    <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input
+                                    id='jambuka'
+                                    type='time'
+                                    placeholder="HH:MM"
+                                    required
+                                    autoFocus
+                                    tabIndex={4}
+                                    value={data.jam_buka}
+                                    onChange={(e) => setData('jam_buka', e.target.value)}
+                                    disabled={processing}
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
+                                />
+                                <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
+                                    WITA
+                                </span>
+                                <InputError message={errors.jam_buka} />
+                            </div>
+                            <div className='relative grid gap-4 mt-2 col-span-1'>
+                                <Label htmlFor='jamtutup'>Waktu Tutup
+                                    <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input
+                                    id='jamtutup'
+                                    type='time'
+                                    placeholder="HH:MM"
+                                    required
+                                    autoFocus
+                                    tabIndex={5}
+                                    value={data.jam_tutup}
+                                    onChange={(e) => setData('jam_tutup', e.target.value)}
+                                    disabled={processing}
+                                    className="w-full [&::-webkit-calendar-picker-indicator]:opacity-0"
+                                />
+                                <span className="absolute right-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
+                                    WITA
+                                </span>
+                                <InputError message={errors.jam_tutup} />
+                            </div>
                         </div>
                     </div>
                     <div className='grid items-start col-span-2 gap-4'>

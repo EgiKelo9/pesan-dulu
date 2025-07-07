@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import InputError from '@/components/input-error';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Eye, Copy, Power } from 'lucide-react';
+import { Eye, Copy, Trash2 } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,16 +28,16 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Pedagang',
-        href: '/merchant/dashboard',
+        title: 'Admin',
+        href: '/admin/dashboard',
     },
     {
         title: 'Warung',
-        href: '/merchant/tenant',
+        href: '/admin/tenant',
     },
     {
         title: 'Ubah',
-        href: '/merchant/tenant/{id}/edit',
+        href: '/admin/tenant/{id}/edit',
     },
 ];
 
@@ -51,7 +51,6 @@ type TenantForm = {
     jam_tutup: number | string;
     user_id: number;
     tautan: string;
-    status: 'aktif' | 'nonaktif';
     _method?: string; // Tambahkan untuk method spoofing
 };
 
@@ -67,11 +66,27 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
         jam_tutup: tenant.jam_tutup,
         user_id: tenant.user_id,
         tautan: tenant.tautan,
-        status: tenant.status,
         _method: 'PUT', // Method spoofing untuk Laravel
     });
 
+    const [deleting, setDeleting] = useState(false);
     const [qrisPreview, setQrisPreview] = useState<string | null>(null);
+
+    const handleDelete: FormEventHandler = (e) => {
+        e.preventDefault();
+        setDeleting(true);
+        router.delete(route('admin.tenant.destroy', tenant.id), {
+            onSuccess: () => {
+                router.visit(route('admin.tenant.index'));
+            },
+            onError: (error) => {
+                console.error('Failed to delete tenant:', error);
+            },
+            onFinish: () => {
+                setDeleting(false);
+            },
+        });
+    };
 
     const handleQrisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -92,49 +107,19 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
         }
     };
 
-    let currentStatus = data.status;
-    const [updating, setUpdating] = useState(false);
-    const [showStatusDialog, setShowStatusDialog] = useState(false);
-
-    const handleUpdateStatus: FormEventHandler = (e) => {
-        e.preventDefault();
-        setUpdating(true);
-
-        // Toggle status
-        const newStatus = data.status === 'aktif' ? 'nonaktif' : 'aktif';
-
-        post(route('merchant.tenant.updateStatus', newStatus), {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                console.log('Status berhasil diubah');
-                setData('status', newStatus);
-                setUpdating(false);
-                setShowStatusDialog(false);
-            },
-            onError: (errors) => {
-                console.error('Gagal mengubah status:', errors);
-                setUpdating(false);
-            },
-            onFinish: () => {
-                setUpdating(false);
-            },
-        });
-    }
-
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
         console.log("Submitting data:", data);
-
+        
         // Gunakan post() dengan method spoofing, bukan put()
-        post(route('merchant.tenant.update', tenant.id), {
+        post(route('admin.tenant.update', tenant.id), {
             // Set forceFormData ke true untuk memaksa penggunaan FormData
             forceFormData: true,
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
                 console.log('Update berhasil');
-                router.visit(route('merchant.tenant.edit', tenant.id));
+                router.visit(route('admin.tenant.edit', tenant.id));
             },
             onError: (errors) => {
                 console.error('Update gagal:', errors);
@@ -148,7 +133,7 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
     const { ToasterComponent } = useFlashMessages();
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} userType='merchant'>
+        <AppLayout breadcrumbs={breadcrumbs} userType='admin'>
             <Head title="Ubah Warung" />
             <ToasterComponent />
             <form className="flex h-full w-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto" onSubmit={handleSubmit}>
@@ -156,48 +141,30 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
                     <h1 className='text-xl py-2 font-semibold'>Ubah Warung</h1>
                     <div className="flex items-center justify-center max-w-sm mb-2 gap-4">
                         <Button variant="outline" asChild>
-                            <Link href={`/merchant/tenant/${tenant.id}`}><Eye />Lihat</Link>
+                            <Link href={`/admin/tenant/${tenant.id}`}><Eye />Lihat</Link>
                         </Button>
-                        <AlertDialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
-                            {currentStatus === 'aktif' ? (
-                                <AlertDialogTrigger className={cn(buttonVariants({ variant: "destructive" }))}>
-                                    <Power />Nonaktifkan
-                                </AlertDialogTrigger>
-                            ) : (
-                                <AlertDialogTrigger className={cn(buttonVariants({ variant: "primary" }))}>
-                                    <Power />Aktifkan
-                                </AlertDialogTrigger>
-                            )}
+                        <AlertDialog>
+                            <AlertDialogTrigger className={cn(buttonVariants({ variant: "destructive" }))}>
+                                <Trash2 />Hapus
+                            </AlertDialogTrigger>
                             <AlertDialogContent>
-                                {currentStatus === 'aktif' ? (
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Apakah Anda yakin ingin menonaktifkan warung?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Warung Anda akan dinonaktifkan dan tidak dapat diakses oleh pelanggan.
-                                            Anda dapat mengaktifkannya kembali kapan saja.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                ) : (
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Apakah Anda yakin ingin mengaktifkan warung?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Warung Anda akan diaktifkan dan dapat diakses oleh pelanggan.
-                                            Pastikan semua informasi sudah benar sebelum mengaktifkannya.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                )}
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Apakah Anda yakin ingin menghapus warung ini?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Aksi ini tidak dapat dibatalkan. Warung ini akan dihapus secara permanen
+                                        dan tidak dapat dipulihkan lagi.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Batal</AlertDialogCancel>
                                     <AlertDialogAction
-                                        onClick={handleUpdateStatus}
-                                        disabled={updating}
-                                        className={currentStatus === "aktif" 
-                                            ? cn(buttonVariants({ variant: 'destructive' })) 
-                                            : cn(buttonVariants({ variant: 'primary' }))}
+                                        onClick={handleDelete}
+                                        disabled={deleting}
+                                        className={cn(buttonVariants({ variant: 'destructive' }))}
                                     >
-                                        {updating ?
+                                        {deleting ?
                                             <LoaderCircle className="h-4 w-4 animate-spin" />
-                                            : (currentStatus === "aktif" ? "Nonaktifkan" : "Aktifkan")}
+                                            : "Hapus"}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
@@ -367,12 +334,10 @@ export default function EditTenant({ tenant }: { tenant: TenantForm }) {
                             <LoaderCircle className="h-4 w-4 animate-spin" />
                             : "Simpan"}
                     </Button>
-                    <Button 
-                        variant={"outline"} 
-                        type="button" 
-                        onClick={() => window.history.back()}
-                    >
-                        Batal
+                    <Button variant={"outline"}>
+                        <Link href="/admin/tenant" className="w-full">
+                            Batal
+                        </Link>
                     </Button>
                 </div>
             </form>

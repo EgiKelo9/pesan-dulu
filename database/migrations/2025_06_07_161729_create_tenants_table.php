@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('qris');
             $table->time('jam_buka');
             $table->time('jam_tutup');
+            $table->enum('status', ['aktif', 'nonaktif'])
+                ->default('aktif');
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->onDelete('cascade')

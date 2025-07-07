@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Merchant;
+namespace App\Http\Controllers\Admin;
 
 use Inertia\Inertia;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 class TenantController extends Controller
@@ -15,11 +16,9 @@ class TenantController extends Controller
      */
     public function index()
     {
-        $tenant = auth('web')->user()->tenant;
-        if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
-        }
-        return redirect()->route('merchant.tenant.show', $tenant->id);
+        return Inertia::render('admin/tenant/tenant-index', [
+            'tenants' => Tenant::with('user')->orderBy('created_at', 'desc')->get(),
+        ]);
     }
 
     /**
@@ -27,13 +26,9 @@ class TenantController extends Controller
      */
     public function create()
     {
-        $user = auth('web')->user();
-        $tenant = $user->tenant;
-        if ($tenant) {
-            return redirect()->route('merchant.tenant.show', $user->id)->with('warning', 'Anda sudah memiliki tenant.');
-        }
-        return Inertia::render('merchant/tenant/tenant-create', [
-            'user' => auth('web')->user(),
+        $users = User::where('role', 'merchant')->whereDoesntHave('tenant')->get();
+        return Inertia::render('admin/tenant/tenant-create', [
+            'users' => $users,
         ]);
     }
 
@@ -84,7 +79,7 @@ class TenantController extends Controller
                 'tautan' => "/" . strtolower(str_replace(' ', '-', $request->nama)),
                 'user_id' => auth('web')->user()->id,
             ]);
-            return redirect()->route('merchant.tenant.show', auth('web')->user()->tenant->id)->with('success', 'Warung berhasil dibuat.');
+            return redirect()->route('admin.tenant.show', $tenant->id)->with('success', 'Warung berhasil dibuat.');
         } catch (\Exception $e) {
             return back()->withErrors('Terjadi kesalahan saat membuat warung. Silakan coba lagi.')->withInput();
         }
@@ -96,10 +91,7 @@ class TenantController extends Controller
     public function show(string $id)
     {
         $tenant = Tenant::findOrFail($id);
-        if ($tenant->user_id !== auth('web')->user()->id) {
-            return redirect()->route('merchantDashboard')->withErrors(['error' => 'Anda tidak memiliki akses ke tenant ini.']);
-        }
-        return Inertia::render('merchant/tenant/tenant-show', [
+        return Inertia::render('admin/tenant/tenant-show', [
             'tenant' => $tenant,
         ]);
     }
@@ -110,14 +102,7 @@ class TenantController extends Controller
     public function edit(string $id)
     {
         $tenant = Tenant::findOrFail($id);
-        $user = auth('web')->user();
-        if (!$user->tenant) {
-            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
-        }
-        if ($tenant->user_id !== $user->id) {
-            return redirect()->route('merchantDashboard')->withErrors(['error' => 'Anda tidak memiliki akses ke tenant ini.']);
-        }
-        return Inertia::render('merchant/tenant/tenant-edit', [
+        return Inertia::render('admin/tenant/tenant-edit', [
             'tenant' => $tenant,
         ]);
     }
@@ -148,12 +133,9 @@ class TenantController extends Controller
 
         try {
             $tenant = Tenant::findOrFail($id);
-            if ($tenant->user_id !== auth('web')->user()->id) {
-                return redirect()->route('merchantDashboard')->withErrors(['error' => 'Anda tidak memiliki akses ke tenant ini.']);
-            }
             $existingTenant = Tenant::where('nama', $tenant->nama)->first();
             if ($existingTenant && $existingTenant->id !== $tenant->id) {
-                return back()->withErrors(['nama' => 'Nama tenant sudah digunakan.'])->withInput();
+                return back()->withErrors(['nama' => 'Nama warung sudah digunakan.'])->withInput();
             }
             $qrisPath = $tenant->qris;
             if ($request->hasFile('qris')) {
@@ -181,7 +163,7 @@ class TenantController extends Controller
                 'tautan' => "/" . strtolower(str_replace(' ', '-', $request->nama)),
             ]);
 
-            return redirect()->back()->with('success', 'Warung berhasil dibuat.');
+            return redirect()->back()->with('success', 'Warung berhasil diubah.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Terjadi kesalahan saat membuat warung. Silakan coba lagi.'])->withInput();
         }
@@ -192,22 +174,30 @@ class TenantController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $tenant = Tenant::findOrFail($id);
+            if ($tenant->qris && Storage::disk('public')->exists($tenant->qris)) {
+                Storage::disk('public')->delete($tenant->qris);
+            }
+            $tenant->delete();
+            return redirect()->route('admin.tenant.index')->with('success', "{$tenant->nama} berhasil dihapus.");
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat menghapus pedagang.']);
+        }
     }
 
     /**
      * Update status field based on toggle switch.
      */
-    public function updateStatus(Request $request, string $status)
+    public function updateStatus(Request $request, string $id)
     {
-        // dd($status);
-        $tenant = auth('web')->user()->tenant;
-        if (!$tenant) {
-            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
-        }
-        $tenant->update([
-            'status' => $status
+        $request->validate([
+            'status' => 'required|in:aktif,nonaktif',
         ]);
-        return redirect()->route('merchant.tenant.edit', $tenant->id)->with('success', "Status warung Anda berhasil diperbarui.");
+        $tenant = Tenant::findOrFail($id);
+        $tenant->update([
+            'status' => $request->status
+        ]);
+        return redirect()->route('admin.tenant.index')->with('success', "Status warung {$tenant->nama} berhasil diperbarui.");
     }
 }
