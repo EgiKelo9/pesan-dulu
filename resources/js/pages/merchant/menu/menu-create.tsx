@@ -94,7 +94,9 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                 <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 items-start gap-4 w-full'>
                     <div className='grid items-center col-span-2 gap-4'>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='nama'>Nama Menu</Label>
+                            <Label htmlFor='nama'>Nama Menu
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Input
                                 id='nama'
                                 type='text'
@@ -110,7 +112,9 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                             <InputError message={errors.nama} />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='deskripsi'>Deskripsi Menu</Label>
+                            <Label htmlFor='deskripsi'>Deskripsi Menu
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Textarea
                                 id='deskripsi'
                                 required
@@ -125,7 +129,9 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                             <InputError message={errors.deskripsi} />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='category_id'>Kategori Menu</Label>
+                            <Label htmlFor='category_id'>Kategori Menu
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(value) => setData('category_id', Number(value))}>
                                 <SelectTrigger
                                     id='category_id'
@@ -149,7 +155,9 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                             <InputError message={errors.category_id} />
                         </div>
                         <div className='relative grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='harga'>Harga Menu</Label>
+                            <Label htmlFor='harga'>Harga Menu
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <span className="absolute left-3 top-12 transform -translate-y-1/2 text-sm text-primary/50">
                                 Rp
                             </span>
@@ -167,7 +175,9 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                             <InputError message={errors.harga} />
                         </div>
                         <div className='grid gap-4 mt-2 col-span-2'>
-                            <Label htmlFor='status'>Status Menu</Label>
+                            <Label htmlFor='status'>Status Menu
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={data.status}>
                                 <SelectTrigger
                                     id='status'
@@ -236,10 +246,12 @@ export default function CreateMenu({ categories }: { categories: CategoryData[] 
                             <LoaderCircle className="h-4 w-4 animate-spin" />
                             : "Buat"}
                     </Button>
-                    <Button variant={"outline"}>
-                        <Link href="/merchant/menu" className="w-full">
-                            Batal
-                        </Link>
+                    <Button 
+                        variant={"outline"} 
+                        type="button" 
+                        onClick={() => window.history.back()}
+                    >
+                        Batal
                     </Button>
                 </div>
             </form>

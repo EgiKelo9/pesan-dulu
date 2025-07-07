@@ -26,6 +26,7 @@ class TenantFactory extends Factory
             'jam_tutup' => fake()->time("H:i"),
             'tautan' => '/'.str_replace(' ', '-', strtolower($nama)),
             'user_id' => \App\Models\User::factory()->create()->id,
+            'status' => 'aktif',
         ];
     }
 }

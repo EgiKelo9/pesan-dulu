@@ -29,4 +29,38 @@ class ProfileUpdateRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama wajib diisi.',
+            'name.string' => 'Nama harus berupa teks.',
+            'name.max' => 'Nama tidak boleh lebih dari :max karakter.',
+            
+            'email.required' => 'Email wajib diisi.',
+            'email.string' => 'Email harus berupa teks.',
+            'email.lowercase' => 'Email harus menggunakan huruf kecil.',
+            'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Email tidak boleh lebih dari :max karakter.',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nama',
+            'email' => 'alamat email',
+        ];
+    }
 }

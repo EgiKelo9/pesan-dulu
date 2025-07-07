@@ -20,6 +20,7 @@ class MenuController extends Controller
             return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
         }
         $menus = $tenant->menus()->orderBy('created_at', 'desc')->get();
+        
         $menus->each(function ($menu) {
             $menu->category_id = $menu->category->nama;
         });

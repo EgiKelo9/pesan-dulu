@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->enum('role', ['merchant', 'admin'])->default('merchant');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
             $table->string('telepon', 15);
             $table->string('avatar')->nullable();
             $table->string('email')->unique();

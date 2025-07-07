@@ -51,7 +51,7 @@ export const OrderColumns: ColumnDef<Order>[] = createTableColumns<Order>({
     actionConfig: {
         basePath: "merchant.order",
         showEdit: false,
-        showDelete: true,
+        showDelete: false,
         showSwitch: false,
         showActionButton: true,
         actionButtonLabel: "Konfirmasi",

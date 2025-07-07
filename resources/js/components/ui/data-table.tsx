@@ -139,7 +139,7 @@ export function DataTable<TData extends { id: string | number }, TValue>({
                         checked={column.getIsVisible()}
                         onCheckedChange={(value) => column.toggleVisibility(!!value)}
                       >
-                        {column.id.replace('_id', '')}
+                        {column.id.replace('_id', '').replace('_', ' ')}
                       </DropdownMenuCheckboxItem>
                     )
                   })}
