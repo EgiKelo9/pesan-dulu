@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\Category;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Menu;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Validation\ValidationException;
 
 class GuestController extends Controller
@@ -245,17 +247,72 @@ class GuestController extends Controller
 
 
             // Tambahkan item ke order
+            // foreach ($cart as $item) {
+            //     $menu = Menu::find($item['menu_id']);
+            //     if ($menu && $item['jumlah'] > 0) {
+            //         // dd($menu , $item);
+            //         // \Log::info('Akan attach menu', ['menu_id' => $menu->id], $menu, $item);
+            //         // $order->menus()->attach($menu->id, [
+            //         //     'jumlah' => $item['jumlah'],
+            //         //     'harga_satuan' => $menu->harga,
+            //         //     'total_harga' => $menu->harga * $item['jumlah'],
+            //         //     'catatan' => $item['catatan'],
+            //         // ]);
+            //         // \DB::table('order_menu')->insert([
+            //         //     'order_id' => $order->id,
+            //         //     'menu_id' => $menu->id,
+            //         //     'jumlah' => $item['jumlah'],
+            //         //     'harga_satuan' => $menu->harga,
+            //         //     'total_harga' => $menu->harga * $item['jumlah'],
+            //         //     'catatan' => $item['catatan'],
+            //         //     'created_at' => now(),
+            //         //     'updated_at' => now(),
+            //         // ]);
+            //         $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
+            //         // dd($order->menus);
+            //         // \Log::info('Isi order_menu:', \DB::table('order_menu')->get()->toArray());
+            //         \Log::info('Menu berhasil ditambahkan ke order', ['menu_id' => $menu->id]);
+            //     } else {
+            //         \Log::error('Menu tidak ditemukan', ['menu_id' => $item['menu_id']]);
+            //         throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
+            //     }
+            // }
+            \Log::info('DEBUG: Mulai proses attach menu ke order', [
+                'order_id' => $order->id,
+                'cart' => $cart
+            ]);
             foreach ($cart as $item) {
                 $menu = Menu::find($item['menu_id']);
-                if ($menu) {
-                    // dd($menu);
-                    $order->menus()->attach($menu->id, [
+                \Log::info('DEBUG: Cek menu', [
+                    'menu_id' => $item['menu_id'],
+                    'menu_found' => $menu ? true : false,
+                    'item' => $item
+                ]);
+                if ($menu && $item['jumlah'] > 0) {
+                    \Log::info('DEBUG: Akan attach menu ke order', [
+                        'order_id' => $order->id,
+                        'menu_id' => $menu->id,
                         'jumlah' => $item['jumlah'],
                         'harga_satuan' => $menu->harga,
                         'total_harga' => $menu->harga * $item['jumlah'],
-                        'catatan' => $item['catatan'],
+                        'catatan' => $item['catatan']
+                    ]);
+                    $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
+                    \Log::info('DEBUG: Menu berhasil ditambahkan ke order', [
+                        'order_id' => $order->id,
+                        'menu_id' => $menu->id
+                    ]);
+                    // Cek isi order_menu setelah insert
+                    $orderMenus = \DB::table('order_menu')->where('order_id', $order->id)->get();
+                    \Log::info('DEBUG: Isi order_menu setelah insert', [
+                        'order_id' => $order->id,
+                        'order_menu' => $orderMenus
                     ]);
                 } else {
+                    \Log::error('DEBUG: Menu tidak ditemukan atau jumlah <= 0', [
+                        'menu_id' => $item['menu_id'],
+                        'item' => $item
+                    ]);
                     throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
                 }
             }
@@ -264,11 +321,25 @@ class GuestController extends Controller
             cookie()->queue('tenant', $tenantSlug, 60 * 24 * 7);
             cookie()->queue('pelanggan', json_encode($pelanggan), 60 * 24 * 7);
 
+            // Simpan id_order ke session
+            // session(['order_id' => $order->id]);
+            // dd(session('order_id'));
+
+            // Simpan id_order ke cookies
+            // Ambil cookie existing, kalau belum ada, inisialisasi array kosong
+            $existingOrders = json_decode(Cookie::get('order_ids', '[]'), true);
+
+            // Tambahkan order_id baru
+            $existingOrders[] = $order->id;
+
+            // Simpan kembali ke cookie (dalam bentuk JSON)
+            Cookie::queue( 'order_ids', json_encode($existingOrders), 60*24*30 );
+
             // Hapus cart dari session
             session()->forget('cart');
             session()->forget('pelanggan');
             
-            return redirect()->route('pantauPesanan', [], 303);
+            return redirect()->route('pantauPesanan', ['id_order' => $order->id], 303);
         } catch (\Throwable $th) {
             //throw $th;
         }
@@ -301,9 +372,108 @@ class GuestController extends Controller
         return redirect()->back()->with('message', 'Item berhasil dihapus dari keranjang!');
     }
 
-    public function pantauPesanan()
+    public function deleteItemCart(Request $request)
     {
+        // Validate the request
+        $request->validate([
+            'index' => 'required|integer|min:0'
+        ]);
+        
+        $cart = session()->get('cart', []);
+        
+        // Validate that the index exists
+        if (!isset($cart[$request->index])) {
+            return redirect()->back()->withErrors(['error' => 'Item tidak ditemukan di keranjang.']);
+        }
+        
+        // Remove the item from cart array
+        unset($cart[$request->index]);
+        
+        // Re-index the array to maintain proper indexing
+        $cart = array_values($cart);
+        
+        // Update session
+        session(['cart' => $cart]);
+        
+        return redirect()->back()->with('message', 'Item berhasil dihapus dari keranjang!');
+    }
 
+    public function pantauPesanan($id_order)
+    {
+        // Cek apakah ada order_id di session
+        // $id_order = 12;
+        $orderIds = json_decode(Cookie::get('order_ids', '[]'), true);
+        // var_dump($orderIds);
+        // $id_order = session()->get('order_id', []);
+        if (!is_array($orderIds)) {
+            $orderIds = [];
+        }
+
+        if (!in_array($id_order, $orderIds)) {
+            dd($orderIds);
+            return redirect()->route('home')->with('message', 'Maaf Id order tidak ditemukan');
+        }
+
+        if (empty($id_order)) {
+            dd($id_order);
+            return redirect()->route('home')->with('message', 'Tidak ada pesanan yang sedang dipantau.');
+        }
+        // Ambil order berdasarkan id_order
+        $order = Order::find($id_order);
+        // dd($id_order, $order);
+        if (!$order) {
+            dd($order);
+            return redirect()->route('home')->with('message', 'Pesanan tidak ditemukan.');
+        }
+
+        $orderMenus = $order->menus()->withPivot(['jumlah', 'harga_satuan', 'total_harga', 'catatan'])->get();
+        $order->order_menus = $orderMenus;
+
+        $riwayatOrders = Order::with(['tenant', 'menus'])
+        ->whereIn('id', $orderIds)
+        ->get()
+        ->map(function ($o) {
+            return [
+                'id' => $o->id,
+                'tenant' => $o->tenant ? $o->tenant->nama : '-',
+                'total_harga' => $o->total_harga,
+                'jumlah_item' => $o->menus->count(),
+                'tanggal_pesanan' => $o->tanggal_pesanan,
+                'status' => $o->status,
+            ];
+        });
+
+        // dd($order);
+        return Inertia::render('MonitorOrder', [
+            'order' => $order,
+            'riwayat' => $riwayatOrders,
+        ]);
+    }
+
+    public function buatLaporan($id_order, Request $request){
+        // Decode JSON payload
+        $data = json_decode($request->getContent(), true);
+
+        // Validasi data minimal
+        if (!$data || !isset($data['categories'])) {
+            dd("jir gak ada data");
+            return response()->json(['error' => 'Invalid data'], 400);
+        }
+
+        // dd($data, $id_order);
+
+        // Simpan ke database
+        $report = Report::create([
+            'order_id' => $id_order,
+            'categories' => json_encode($data['categories']),
+            'reason' => $data['reason'] ?? '',
+        ]);
+            
+        \Log::info('LAPORAN - Report saved:', [
+            'report' => $report->toArray()
+        ]);
+        return response()->json(['message' => 'Laporan berhasil disimpan']);
+        // dd($request, $id_order);
     }
 
 }
