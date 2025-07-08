@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Menu;
 use App\Models\Order;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +21,7 @@ class OrderFactory extends Factory
     {
         return [
             'nama' => fake()->name(),
-            'telepon' => fake()->phoneNumber(),
+            'telepon' => Str::replace(' ', '', fake()->phoneNumber()),
             'status' => 'diambil',
             'tanggal_pesanan' => now('Asia/Jakarta')->subDays(fake()->numberBetween(0, 7)),
             'total_harga' => fake()->numberBetween(10, 300) * 1000,

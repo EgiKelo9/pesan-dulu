@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->dateTimeTz('tanggal_pesanan')->default(now('Asia/Jakarta'));
             $table->string('nama');
-            $table->string('telepon', 15);
+            $table->string('telepon', 20);
             $table->time('waktu_diambil')->default(now('Asia/Jakarta')->addMinutes(30)->format('H:i'));
             $table->enum('status', ['menunggu', 'diterima', 'siap', 'diambil', 'gagal'])
                 ->default('menunggu');

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AspectRatio } from "@radix-ui/react-aspect-ratio";
 import {
   Dialog,
   DialogClose,
@@ -15,19 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RiwayatDropdown } from "@/components/tombol-riwayat"; // atau sesuaikan path-nya
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group"
+import { RiwayatDropdown } from "@/components/tombol-riwayat"; 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
+import { CircleArrowLeft, TriangleAlert } from "lucide-react";
 
 type RiwayatItem = {
   id: number;
@@ -69,7 +59,7 @@ type Order = {
   nama: string;
   telepon: string;
   waktu_diambil: string;
-  status: string;
+  status: 'menunggu' | 'diterima' | 'siap' | 'diambil' | 'gagal';
   total_harga: number;
   bukti_pembayaran: string;
   tenant_id: number;
@@ -99,7 +89,7 @@ export default function MonitorOrder({ riwayat }: { riwayat: RiwayatItem[] }) {
   const orderMenus: MenuPivot[] = order?.order_menus ?? [];
 
   React.useEffect(() => {
-    console.log("test",order)
+    console.log("test", order)
     orderMenus.forEach((item) => {
       console.log("Menu:", {
         id: item.id,
@@ -134,7 +124,7 @@ export default function MonitorOrder({ riwayat }: { riwayat: RiwayatItem[] }) {
     );
   }
 
-    const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   // State untuk alasan
   const [reason, setReason] = React.useState("");
 
@@ -159,289 +149,292 @@ export default function MonitorOrder({ riwayat }: { riwayat: RiwayatItem[] }) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        {/* Tombol Back */}
-        <Button
-          size="icon"
-          variant="outline"
-          className="w-12 h-12"
-          onClick={() => window.history.back()}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-12 h-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="flex items-center justify-between p-4 md:p-6">
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-10 w-10 md:h-12 md:w-12"
+            onClick={() => window.history.back()}
           >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth={2}
-              fill="none"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 8l-4 4 4 4"
-            />
-            <line
-              x1="16"
-              y1="12"
-              x2="8"
-              y2="12"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-          </svg>
-        </Button>
-
-        {/* Judul */}
-        <div className="flex flex-col items-center flex-1">
-          <h1 className="text-2xl font-bold">Rincian Pesanan</h1>
+            <CircleArrowLeft className="h-5 w-5 md:h-6 md:w-6 scale-125" />
+          </Button>
+          <h1 className="text-lg md:text-2xl font-bold">Rincian Pesanan</h1>
+          <div className="h-10 w-10 md:h-12 md:w-12" /> {/* Spacer for centering */}
         </div>
+      </div>
 
-        {/* Tombol Lapor */}
-        <div className="flex gap-2">
+      {/* Content */}
+      <div className="p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          {/* Title for mobile */}
+          <h2 className="text-base md:text-lg font-semibold">
+            Pesanan ({orderMenus.length})
+          </h2>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
           <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="destructive">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h18.78a1.5 1.5 0 001.29-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v4m0 4h.01"
-            />
-          </svg>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h18.78a1.5 1.5 0 001.29-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v4m0 4h.01"
-              />
-            </svg>
-            Laporkan
-          </DialogTitle>
-            <DialogDescription>
-              Jumlah Pesanan {orderMenus.length}, Total: {new Intl.NumberFormat("id-ID", {
-                style: "currency",
-                currency: "IDR",
-              }).format(total)}
-            </DialogDescription>
-            <DialogDescription>
-              Pesanan Dibuat Pada : {order.tanggal_pesanan}
-            </DialogDescription>
-            <DialogDescription>
-              Status Pesanan : {order.status && order.status
-                      .split(' ')
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ')}
-            </DialogDescription>
-          <Separator/>
-        </DialogHeader>
+            <DialogTrigger asChild>
+              <Button variant="destructive">
+                <TriangleAlert className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-red-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h18.78a1.5 1.5 0 001.29-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v4m0 4h.01"
+                    />
+                  </svg>
+                  Laporkan
+                </DialogTitle>
+                <DialogDescription>
+                  Jumlah Pesanan {orderMenus.length}, Total: {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(total)}
+                </DialogDescription>
+                <DialogDescription>
+                  Pesanan Dibuat Pada : {order.tanggal_pesanan}
+                </DialogDescription>
+                <DialogDescription>
+                  Status Pesanan : {order.status && order.status
+                    .split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
+                </DialogDescription>
+                <Separator />
+              </DialogHeader>
 
-        {/* List Checkbox */}
-          <DialogDescription className="font-bold text-black-600">
-              Masukan Kategori Laporan
-          </DialogDescription>
-          <DialogDescription>
-            Pilih kategori dan tambahkan alasan jika diperlukan.
-          </DialogDescription>
-        <div className="grid gap-3">
-          {categories.map((category) => (
-            <div key={category.id} className="flex items-center gap-3">
-              <Checkbox
-                className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
-                id={category.id}
-                checked={selectedCategories.includes(category.id)}
-                onCheckedChange={() => toggleCategory(category.id)}
-              />
-              <Label htmlFor={category.id} className="font-light">{category.label}</Label>
-            </div>
-          ))}
-        </div>
-        {/* Alasan */}
-        <div className="grid gap-3">
-          <Label htmlFor="reason">
-            <span className="font-bold">Alasan</span>{" "}
-            <span className="font-normal">(Opsional)</span>
-          </Label>
-          <Textarea
-            id="reason"
-            placeholder="Masukan alasan di sini"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={() => {
-                router.post(`/laporan/${order.id}`, {
-                  categories: selectedCategories,
-                  reason: reason,
-                });
-              }}
-            >
-              Lapor
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+              {/* List Checkbox */}
+              <DialogDescription className="font-bold text-black-600">
+                Masukan Kategori Laporan
+              </DialogDescription>
+              <DialogDescription>
+                Pilih kategori dan tambahkan alasan jika diperlukan.
+              </DialogDescription>
+              <div className="grid gap-3">
+                {categories.map((category) => (
+                  <div key={category.id} className="flex items-center gap-3">
+                    <Checkbox
+                      className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
+                      id={category.id}
+                      checked={selectedCategories.includes(category.id)}
+                      onCheckedChange={() => toggleCategory(category.id)}
+                    />
+                    <Label htmlFor={category.id} className="font-light">{category.label}</Label>
+                  </div>
+                ))}
+              </div>
+              {/* Alasan */}
+              <div className="grid gap-3">
+                <Label htmlFor="reason">
+                  <span className="font-bold">Alasan</span>{" "}
+                  <span className="font-normal">(Opsional)</span>
+                </Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Masukan alasan di sini"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() => {
+                      router.post(`/laporan/${order.id}`, {
+                        categories: selectedCategories,
+                        reason: reason,
+                      });
+                    }}
+                  >
+                    Lapor
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           {/* Tombol Riwayat */}
           <RiwayatDropdown riwayat={props.riwayat} />
         </div>
       </div>
-      <hr />
-      <h1 className="text-lg font-semibold mt-5">
-        Pesanan ({orderMenus.length})
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Daftar Item */}
-        <div className="shadow p-4 rounded">
-          <ul>
-            {orderMenus.length === 0 && (
-              <li className="text-gray-500 py-3">Tidak ada menu.</li>
-            )}
-            {orderMenus.map((item) => (
-              <li key={item.id} className="border-b py-3 flex gap-3">
-                <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                  <img
-                    src={
-                      item.foto
-                        ? `${window.location.origin}/storage/${item.foto}`
-                        : `${window.location.origin}/images/blank-photo-icon.jpg`
-                    }
-                    alt={item.nama}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 self-center">
-                  <h3 className="font-medium">{item.nama}</h3>
-                  <p className="text-sm text-gray-600">
-                    {item.pivot?.catatan ?? "-"}
-                  </p>
-                  <p className="mt-1">
-                    {item.pivot?.jumlah ?? 0} x Rp
-                    {(item.pivot?.harga_satuan ?? 0).toLocaleString()}
-                  </p>
-                </div>
-                <div className="text-right font-semibold self-center flex flex-col items-end gap-1">
-                  <span className="text-right mx-1">
-                    Rp
-                    {(item.pivot?.total_harga ?? 0).toLocaleString()}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-semibold">Subtotal</span>
-              <span className="font-semibold">Rp{subtotal.toLocaleString()}</span>
+        <div className="bg-card shadow-sm border rounded-lg p-4 md:p-6">
+          {orderMenus.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">📋</div>
+              <h3 className="text-lg font-medium mb-2">Tidak ada pesanan</h3>
+              <p className="text-sm text-muted-foreground">
+                Tidak ada menu dalam pesanan ini.
+              </p>
             </div>
-            <div className="flex justify-between items-center mb-1 text-gray-500">
-              <span>Biaya Pesan</span>
-              <span>Rp{biayaPesan.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center mt-2">
-              <span className="font-bold text-lg">Total</span>
-              <span className="font-bold text-lg">Rp{total.toLocaleString()}</span>
-            </div>
-          </div>
+          ) : (
+            <>
+              <ul className="space-y-3 md:space-y-4">
+                {orderMenus.map((item) => (
+                  <li key={item.id} className="border-b last:border-b-0 pb-3 last:pb-0 flex gap-3">
+                    {/* Gambar di kiri */}
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded overflow-hidden flex-shrink-0">
+                      <img
+                        src={
+                          item.foto
+                            ? `${window.location.origin}/storage/${item.foto}`
+                            : `${window.location.origin}/images/blank-photo-icon.jpg`
+                        }
+                        alt={item.nama}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 self-center min-w-0">
+                      <h3 className="font-medium text-sm md:text-base truncate">{item.nama}</h3>
+                      {item.pivot?.catatan && (
+                        <p className="text-xs md:text-sm text-muted-foreground truncate">
+                          {item.pivot.catatan}
+                        </p>
+                      )}
+                      <p className="text-xs md:text-sm mt-1">
+                        {item.pivot?.jumlah ?? 0} x {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.pivot?.harga_satuan ?? 0)}
+                      </p>
+                    </div>
+                    <div className="text-right font-semibold self-center">
+                      <span className="text-xs md:text-sm font-semibold">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.pivot?.total_harga ?? 0)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Summary */}
+              <div className="mt-4 pt-4 border-t space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>{new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Biaya Pesan:</span>
+                  <span>{new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(biayaPesan)}</span>
+                </div>
+                <div className="flex justify-between text-base md:text-lg font-bold pt-2 border-t">
+                  <span>Total:</span>
+                  <span>{new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(total)}</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         {/* Data Pelanggan */}
-        <div className="shadow p-4 rounded">
-          <h2 className="text-lg font-semibold mb-4">Data Pelanggan</h2>
-          <div className="mx-4 mb-4">
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">Nama Pelanggan</Label>
+        <div className="bg-card shadow-sm border rounded-lg p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold mb-4">Data Pelanggan</h2>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="nama_pelanggan" className="text-sm md:text-base">
+                Nama Pelanggan
+              </Label>
               <Input
+                id="nama_pelanggan"
                 value={order.nama ?? ""}
                 readOnly
-                className="w-full border rounded px-2 py-1"
+                className="mt-1"
               />
             </div>
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">
+
+            <div>
+              <Label htmlFor="nomor_hp" className="text-sm md:text-base">
                 Nomor HP/WA Pelanggan
               </Label>
               <Input
+                id="nomor_hp"
                 value={order.telepon ?? ""}
                 readOnly
-                className="w-full border rounded px-2 py-1"
+                className="mt-1"
               />
             </div>
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">Waktu Pengambilan</Label>
-              <Input
-                value={order.waktu_diambil ?? ""}
-                readOnly
-                className="w-full border rounded px-2 py-1"
-              />
-            </div>
-            <div className="flex items-center justify-between mt-6 mb-2">
-              <h2 className="text-lg font-semibold">Total</h2>
-              <span className="text-lg font-bold">
-                Rp{total.toLocaleString()}
-              </span>
-            </div>
-              <div className="mt-4 capitalize">
-                <Button
-                  className={`w-full ${statusColor[order.status] || "bg-slate-400 text-white"}`}
-                  disabled={true}
-                  >
-                  {order.status &&
-                    order.status
-                      .split(' ')
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ')}
-                </Button>
+
+            <div>
+              <Label htmlFor="waktu_pengambilan" className="text-sm md:text-base">
+                Waktu Pengambilan
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="waktu_pengambilan"
+                  value={order.waktu_diambil ?? ""}
+                  readOnly
+                  className="pr-12"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs md:text-sm pointer-events-none">
+                  WITA
+                </span>
               </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base md:text-lg font-semibold">Total</h3>
+                <span className="text-base md:text-lg font-bold">
+                  {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(total)}
+                </span>
+              </div>
+
+              <Button
+                className={`w-full text-sm md:text-base py-2 md:py-3 ${statusColor[order.status] || "bg-slate-400 text-white"}`}
+                disabled={true}
+              >
+                {order.status &&
+                  order.status
+                    .split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
-                  

@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@radix-ui/react-separator";
+import { History } from "lucide-react";
 
 type RiwayatItem = {
   id: number;
@@ -21,7 +22,7 @@ export function RiwayatDropdown({ riwayat }: { riwayat: RiwayatItem[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">Riwayat Pesanan</Button>
+        <Button variant="outline"><History /></Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto" align="end">
         {riwayat.length === 0 && (

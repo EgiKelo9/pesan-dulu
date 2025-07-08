@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Search, ShoppingCart } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { RiwayatDropdown } from '@/components/tombol-riwayat';
 
 type Tenant = {
   nama: string;
@@ -55,7 +56,16 @@ type cart = {
   total_harga: number;
 };
 
-export default function WarungPublik({ tenant, categories, cart }: { tenant: Tenant; categories: Category[]; cart: cart[] }) {
+type RiwayatItem = {
+  id: number;
+  tenant: string;
+  total_harga: number;
+  jumlah_item: number;
+  tanggal_pesanan: string;
+  status: string;
+};
+
+export default function WarungPublik({ tenant, categories, cart, riwayat }: { tenant: Tenant; categories: Category[]; cart: cart[], riwayat: RiwayatItem[] }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -119,12 +129,12 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
 
         {/* Kanan: Search & Cart */}
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none md:flex-1">
+          <div className="relative flex-1 md:flex-none">
             <Input
               placeholder="Cari menu..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex sm:hidden md:flex md:w-40 pr-8"
+              className="flex sm:hidden md:w-40 pr-8"
             />
             {searchQuery && (
               <button
@@ -136,11 +146,11 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
             )}
           </div>
           <Dialog>
-            <DialogTrigger asChild>
+            <DialogTrigger className='hidden md:flex' asChild>
               <Button
                 size="icon"
                 variant="outline"
-                className="hidden sm:flex md:hidden"
+                className="flex"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -192,6 +202,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <RiwayatDropdown riwayat={riwayat} />
           <div className="relative">
             <Button
               size="icon"
@@ -253,7 +264,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
         <div className="px-4 sm:px-8 py-2">
           <p className="text-sm text-gray-600">
             Hasil pencarian untuk "{searchQuery}" - {filteredCategoriesWithSearch.reduce((total, cat) => total + cat.menus.length, 0)} menu ditemukan
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="ml-2 text-primary hover:underline"
             >
@@ -267,7 +278,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
       {searchQuery && filteredCategoriesWithSearch.length === 0 && (
         <div className="px-4 sm:px-8 py-8 text-center">
           <p className="text-gray-500">Tidak ada menu yang ditemukan untuk "{searchQuery}"</p>
-          <button 
+          <button
             onClick={() => setSearchQuery('')}
             className="mt-2 text-primary hover:underline"
           >
@@ -402,6 +413,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
                                     "[data-dialog-close]"
                                   );
                                   closeBtn?.click();
+                                  setQuantity(1);
                                 }}
                               >
                                 {isSubmitting
@@ -440,7 +452,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
                 category.menus.map((menu) => (
                   <div
                     key={menu.id}
-                    className="border rounded-lg p-2 overflow-hidden flex flex-col min-h-[280px] h-full"
+                    className="border rounded-lg p-2 overflow-hidden flex flex-col h-full"
                   >
                     <AspectRatio ratio={4 / 3} className="mb-2 flex-shrink-0">
                       <img
@@ -454,7 +466,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
                       />
                     </AspectRatio>
                     <div className="flex flex-col flex-grow">
-                      <p 
+                      <p
                         className="text-sm font-normal my-1 text-left overflow-hidden flex-grow"
                         style={{
                           display: '-webkit-box',
@@ -602,7 +614,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
           </div>
 
           {/* Right: Links and Contact */}
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-xs sm:text-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-sm">
             <div className="text-gray-500 text-center sm:text-right">
               <p className="hidden sm:block">© 2025 PesanDulu. All Rights Reserved.</p>
               <p className="sm:hidden">© 2025 PesanDulu</p>
@@ -612,7 +624,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
 
         {/* Bottom: Additional Info (only on larger screens) */}
         <div className="hidden sm:block mt-4 pt-4 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-sm text-gray-500">
             <div className="flex flex-col items-center md:items-start gap-2">
               <span>📍 Alamat: {tenant.alamat}</span>
               <span>📞 Telepon: {tenant.telepon}</span>
@@ -625,7 +637,7 @@ export default function WarungPublik({ tenant, categories, cart }: { tenant: Ten
 
         {/* Mobile: Simplified tenant info */}
         <div className="block sm:hidden mt-3 pt-3 border-t border-gray-200 text-center">
-          <div className="text-xs text-gray-500 space-y-1">
+          <div className="text-sm text-gray-500 space-y-1">
             <p>📍 {tenant.alamat}</p>
             <p>📞 {tenant.telepon}</p>
           </div>

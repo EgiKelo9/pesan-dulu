@@ -25,7 +25,7 @@ class UserFactory extends Factory
     {
         return [
             'nama' => fake()->name(),
-            'telepon' => fake()->unique()->phoneNumber(),
+            'telepon' => Str::replace(' ', '', fake()->unique()->phoneNumber()),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

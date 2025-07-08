@@ -15,6 +15,17 @@ use Illuminate\Validation\ValidationException;
 
 class GuestController extends Controller
 {
+    public function index()
+    {
+        $tenants = Tenant::with(['categories', 'menus'])
+            ->where('status', 'aktif')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return Inertia::render('welcome', [
+            'tenants' => $tenants,
+        ]);
+    }
+
     public $slug;
     /**
      * Display the specified resource.
@@ -51,10 +62,30 @@ class GuestController extends Controller
 
         $cart = session()->get('cart', []);
 
+        $orderIds = json_decode(Cookie::get('order_ids', '[]'), true);
+        if (!is_array($orderIds)) {
+            $orderIds = [];
+        }
+
+        $riwayatOrders = Order::with(['tenant', 'menus'])
+            ->whereIn('id', $orderIds)
+            ->get()
+            ->map(function ($o) {
+                return [
+                    'id' => $o->id,
+                    'tenant' => $o->tenant ? $o->tenant->nama : '-',
+                    'total_harga' => $o->total_harga,
+                    'jumlah_item' => $o->menus->count(),
+                    'tanggal_pesanan' => $o->tanggal_pesanan,
+                    'status' => $o->status,
+                ];
+            });
+
         return Inertia::render('Order', [
             'tenant' => $tenant,
             'categories' => $categories,
-            'cart' => $cart
+            'cart' => $cart,
+            'riwayat' => $riwayatOrders,
         ]);
     }
 
@@ -214,7 +245,7 @@ class GuestController extends Controller
             if ($request->hasFile('bukti_pembayaran')) {
                 $file = $request->file('bukti_pembayaran');
                 $filename = time() . '_' . $file->getClientOriginalName();
-                
+
                 // Use the correct method for file storage
                 $path = 'bukti_pembayaran/' . $filename;
                 Storage::disk('public')->put($path, file_get_contents($file));
@@ -260,9 +291,8 @@ class GuestController extends Controller
 
             // Clear session data
             session()->forget(['cart', 'pelanggan']);
-            
-            return redirect()->route('pantauPesanan', ['id_order' => $order->id])->with('success', 'Pembayaran berhasil dikonfirmasi!');
 
+            return redirect()->route('pantauPesanan', ['id_order' => $order->id])->with('success', 'Pembayaran berhasil dikonfirmasi!');
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Throwable $th) {

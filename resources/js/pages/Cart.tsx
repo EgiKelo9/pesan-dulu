@@ -287,8 +287,8 @@ export default function Cart() {
                                 </DialogClose>
                               </DialogFooter>
                             </DialogContent>
-                          </Dialog>                    </div>
-
+                          </Dialog>
+                        </div>
                         <span className="text-right text-xs md:text-sm font-semibold mt-1">
                           {new Intl.NumberFormat("id-ID", {
                             style: "currency",
