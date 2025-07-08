@@ -195,7 +195,7 @@ export default function CreateMerchant() {
                                 {avatarPreview ? (
                                     <img
                                         src={avatarPreview}
-                                        alt="Avatara Preview"
+                                        alt="Avatar Preview"
                                         className="h-full w-full rounded-md object-contain aspect-video"
                                     />
                                 ) : (

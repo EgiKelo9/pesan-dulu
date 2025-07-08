@@ -1,10 +1,6 @@
-import React, { useState }  from "react";
+import React, { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@radix-ui/react-separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AspectRatio } from "@radix-ui/react-aspect-ratio";
 import {
   Dialog,
   DialogClose,
@@ -14,14 +10,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { CircleArrowLeft, Pencil, Trash2 } from "lucide-react";
 
 type CartItem = {
   menu_id: number;
   nama: string;
   jumlah: number;
   catatan: string;
-  foto?: string; 
+  foto?: string;
   harga: number;
   index?: number; // Tambahkan properti index jika diperlukan
 };
@@ -43,249 +45,374 @@ export default function Cart() {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="">
-            <Button size="icon" variant="outline" className="w-12 h-12" onClick={() => window.history.back()}>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-12 h-12"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={2} fill="none" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 8l-4 4 4 4" />
-                    <line x1="16" y1="12" x2="8" y2="12" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
-                </svg>
-            </Button>
-        </div>
-        <div className="flex flex-col items-center flex-1">
-            <h1 className="text-2xl font-bold ">Rincian Pesanan</h1>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="flex items-center justify-between p-4 md:p-6">
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-10 w-10 md:h-12 md:w-12"
+            onClick={() => window.history.back()}
+          >
+            <CircleArrowLeft className="h-5 w-5 md:h-6 md:w-6 scale-125" />
+          </Button>
+          <h1 className="text-lg md:text-2xl font-bold">Rincian Pesanan</h1>
+          <div className="h-10 w-10 md:h-12 md:w-12" /> {/* Spacer for centering */}
         </div>
       </div>
-      <hr />
-      <h1 className="text-lg font-semibold mt-5">Checkout Pesanan ({cart.length})</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Daftar Item */}
-        <div className="shadow p-4 rounded">
-          <ul>
-            {cart.map((item, index) => (
-                <li
-                    key={item.menu_id}
-                    className="border-b py-3 flex gap-3"
-                >
-                    {/* Gambar di kiri */}
-                    <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                    <img
-                        src={
-                        item.foto
-                            ? `${window.location.origin}/storage/${item.foto}`
-                            : `${window.location.origin}/images/blank-photo-icon.jpg`
-                        }
-                        alt={item.nama}
-                        className="w-full h-full object-cover"
-                    />
-                    </div>
-                    <div className="flex-1 self-center">
-                    <h3 className="font-medium">{item.nama}</h3>
-                    <p className="text-sm text-gray-600">{item.catatan}</p>
-                    <p className="mt-1">
-                        {item.jumlah} x Rp{item.harga.toLocaleString()}
-                    </p>
-                    </div>
-                    <div className="text-right font-semibold self-center flex flex-col items-end gap-1">
-                        <Dialog>
-                    <form>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="mb-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil h-4 w-4 mr-1">
-                                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
-                                <path d="m15 5 4 4"></path>
-                            </svg>
-                            Ubah
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <AspectRatio ratio={16 / 9} className="mb-4">
-                            <img
-                              src={
-                                item.foto
-                                  ? `${window.location.origin}/storage/${item.foto}`
-                                  : `${window.location.origin}/images/blank-photo-icon.jpg`
-                              }
-                              alt={item.nama}
-                              className="rounded-lg"
-                            />
-                          </AspectRatio>
-                          <DialogDescription className="text-base">
-                            {item.nama}
-                          </DialogDescription>
-                          <DialogTitle>
-                            {new Intl.NumberFormat("id-ID", {
-                              style: "currency",
-                              currency: "IDR",
-                            }).format(item.harga)}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <Separator />
-                        <div className="grid gap-4">
-                          <div className="grid gap-3">
-                            <Label htmlFor="name-1">
-                              <span className="font-bold">Catatan</span>{" "}
-                              <span className="font-normal">(Opsional)</span>
-                            </Label>
-                            <Input
-                              id="name-1"
-                              name="name"
-                              placeholder="Goreng Kering"
-                              defaultValue={item.catatan}
-                            />
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm mr-2">Total Pesanan</span>
-                              <div className="flex items-center space-x-1">
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-7 w-7 p-0 text-base"
-                                  onClick={() =>
-                                    setQuantities((prev) => {
-                                      const copy = [...prev];
-                                      copy[index] = Math.max(1, copy[index] - 1);
-                                      return copy;
-                                    })
-                                  }
-                                >
-                                  −
-                                </Button>
-                                <span className="text-sm">{quantities[index]}</span>
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-7 w-7 p-0 text-base"
-                                  onClick={() => 
-                                    setQuantities((prev) => {
-                                      const copy = [...prev];
-                                      copy[index] = Math.max(1, copy[index] + 1);
-                                      return copy;
-                                    })
-                                  }
-                                >
-                                  +
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <DialogFooter className="p-0">
-                          <Button
-                            type="button"
-                            className="w-full"
-                            onClick={async() => {
-                              router.post('/cart/update',{
-                                jumlah: quantities[index],
-                                catatan: (document.getElementById("name-1") as HTMLInputElement)?.value || "",
-                                index: index,
-                              });
-                              const closeBtn = document.querySelector<HTMLButtonElement>(
-                                "[data-dialog-close]"
-                              );
-                              closeBtn?.click();
-                              router.reload({ only: ['cart'] });
-                            }}
-                          >
-                            Tambah Pesanan - Rp{(item.harga * item.jumlah).toLocaleString()}
-                          </Button>
-                          <DialogClose asChild>
-                            <button
-                              style={{ display: "none" }}
-                              data-dialog-close
-                            />
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </form>
-                  </Dialog>
-                        <span className="text-right mx-1">Rp{(item.harga * item.jumlah).toLocaleString()}</span>
-                    </div>
-                </li>
-                ))}
-          </ul>
-          <div className="mt-4 text-right">
-            <p>Subtotal: Rp{subtotal.toLocaleString()}</p>
-            <p>Biaya Pesan: Rp{biayaPesan.toLocaleString()}</p>
-            <p className="font-bold text-lg mt-2">
-              Total: Rp{total.toLocaleString()}
-            </p>
-          </div>
-        </div>
 
-        {/* Data Pelanggan */}
-        <div className="shadow p-4 rounded">
-          <h2 className="text-lg font-semibold mb-4">Data Pelanggan</h2>
-          <div className="mx-4 mb-4">
-          <form
-            onSubmit={e => {
-            e.preventDefault();
-            router.post('/cart/checkout', {
-              nama_pelanggan: (document.getElementById("nama_pelanggan") as HTMLInputElement)?.value || "",
-              nomor_hp: (document.getElementById("nomor_hp") as HTMLInputElement)?.value || "",
-              waktu_pengambilan: (document.getElementById("waktu_pengambilan") as HTMLInputElement)?.value || "",
-              // total_bayar: total,
-            });
-          }}  
-          >
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">Nama Pelanggan</Label>
-              <Input
-                id="nama_pelanggan"
-                type="text"
-                name="nama_pelanggan"
-                required
-                className="w-full border rounded px-2 py-1"
-                placeholder="Masukkan nama panggilan Anda"
-              />
-            </div>
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">Nomor HP/WA Pelanggan</Label>
-              <Input
-                id="nomor_hp"
-                type="number"
-                name="nomor_hp"
-                className="w-full border rounded px-2 py-1"
-                placeholder="Masukkan nomor HP/WA Anda"
-                required
-              />
-            </div>
-            <div className="mb-3 mt-6">
-              <Label className="block text-sm mb-1">Waktu Pengambilan</Label>
-              <div className="relative flex items-center">
-                <Input
-                  id="waktu_pengambilan"
-                  required
-                  name="waktu_pengambilan"
-                  type="time"
-                  className="w-full border rounded px-2 py-1 pr-14"
-                />
-                <span className="absolute right-3 text-gray-500 text-sm pointer-events-none">WITA</span>
+      {/* Content */}
+      <div className="p-4 md:p-6">
+        <h2 className="text-base md:text-lg font-semibold mb-4">
+          Checkout Pesanan ({cart.length})
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          {/* Daftar Item */}
+          <div className="bg-card shadow-sm border rounded-lg p-4 md:p-6">
+            {cart.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🛒</div>
+                <h3 className="text-lg font-medium mb-2">Keranjang Kosong</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Belum ada item yang ditambahkan ke keranjang belanja Anda.
+                </p>
+                <Button
+                  variant="primary"
+                  onClick={() => window.history.back()}
+                >
+                  Kembali Belanja
+                </Button>
               </div>
-            </div>
-            <div className="flex items-center justify-between mt-6 mb-2">
-              <h2 className="text-lg font-semibold">Total</h2>
-              <span className="text-lg font-bold">Rp{total.toLocaleString()}</span>
-            </div>
-            <div className="mt-4">
-              <Button 
-              className="w-full" 
-              type="submit"
-              disabled={cart.length === 0}>
-                Pesan Sekarang - Rp{total.toLocaleString()}
-              </Button>
-            </div>
-          </form>
+            ) : (
+              <>
+                <ul className="space-y-3 md:space-y-4">
+                  {cart.map((item, index) => (
+                    <li
+                      key={item.menu_id}
+                      className="border-b last:border-b-0 pb-3 last:pb-0 flex gap-3"
+                    >
+                      {/* Gambar di kiri */}
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded overflow-hidden flex-shrink-0">
+                        <img
+                          src={
+                            item.foto
+                              ? `${window.location.origin}/storage/${item.foto}`
+                              : `${window.location.origin}/images/blank-photo-icon.jpg`
+                          }
+                          alt={item.nama}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 self-center min-w-0">
+                        <h3 className="font-medium text-sm md:text-base truncate">{item.nama}</h3>
+                        {item.catatan && (
+                          <p className="text-xs md:text-sm text-muted-foreground truncate">{item.catatan}</p>
+                        )}
+                        <p className="text-xs md:text-sm mt-1">
+                          {item.jumlah} x Rp{item.harga.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right font-semibold self-center flex flex-col items-end gap-1">
+                        <div className="flex gap-1">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                                <Pencil className="h-3 w-3 md:h-4 md:w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="w-[calc(100vw-2rem)] max-w-sm md:max-w-md mx-4 md:mx-auto">
+                              <DialogHeader>
+                                <AspectRatio ratio={4 / 3} className="mb-3 md:mb-4">
+                                  <img
+                                    src={
+                                      item.foto
+                                        ? `${window.location.origin}/storage/${item.foto}`
+                                        : `${window.location.origin}/images/blank-photo-icon.jpg`
+                                    }
+                                    alt={item.nama}
+                                    className="rounded-lg object-cover aspect-[4/3]"
+                                  />
+                                </AspectRatio>
+                                <DialogDescription className="text-primary">
+                                  <span className="text-base md:text-lg font-medium">{item.nama}</span>
+                                </DialogDescription>
+                                <DialogTitle className="text-lg md:text-xl font-bold">
+                                  {new Intl.NumberFormat("id-ID", {
+                                    style: "currency",
+                                    currency: "IDR",
+                                  }).format(item.harga)}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <Separator />
+                              <div className="grid gap-2 md:gap-4">
+                                <div className="grid gap-2 md:gap-3">
+                                  <Label htmlFor={`catatan-${index}`} className="text-sm md:text-base">
+                                    <span className="font-bold">Catatan</span>{" "}
+                                    <span className="font-normal">(Opsional)</span>
+                                  </Label>
+                                  <Textarea
+                                    id={`catatan-${index}`}
+                                    name="catatan"
+                                    placeholder="ex: Goreng Kering"
+                                    defaultValue={item.catatan}
+                                    className="text-sm md:text-base"
+                                  />
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                        onClick={() =>
+                                          setQuantities((prev) => {
+                                            const copy = [...prev];
+                                            copy[index] = Math.max(1, copy[index] - 1);
+                                            return copy;
+                                          })
+                                        }
+                                      >
+                                        −
+                                      </Button>
+                                      <span className="text-xs md:text-sm font-medium min-w-[1rem] text-center">{quantities[index]}</span>
+                                      <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                        onClick={() =>
+                                          setQuantities((prev) => {
+                                            const copy = [...prev];
+                                            copy[index] = Math.max(1, copy[index] + 1);
+                                            return copy;
+                                          })
+                                        }
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <DialogFooter className="p-0 pt-2 md:pt-4">
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  className="w-full text-sm md:text-base py-2 md:py-3"
+                                  onClick={async () => {
+                                    const catatanInput = document.getElementById(`catatan-${index}`) as HTMLInputElement;
+                                    router.post('/cart/update', {
+                                      jumlah: quantities[index],
+                                      catatan: catatanInput?.value || "",
+                                      index: index,
+                                    });
+                                    // Close the dialog properly
+                                    const closeBtn = document.querySelector<HTMLButtonElement>(
+                                      "[data-dialog-close]"
+                                    );
+                                    closeBtn?.click();
+                                  }}
+                                >
+                                  Ubah Pesanan - {new Intl.NumberFormat("id-ID", {
+                                    style: "currency",
+                                    currency: "IDR",
+                                  }).format(item.harga * quantities[index])}
+                                </Button>
+                                <DialogClose asChild>
+                                  <button
+                                    style={{ display: "none" }}
+                                    data-dialog-close
+                                  />
+                                </DialogClose>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-xs md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
+                                <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="w-[calc(100vw-2rem)] max-w-sm mx-4 md:mx-auto">
+                              <DialogHeader>
+                                <DialogTitle className="text-lg md:text-xl font-bold text-left">
+                                  Hapus {item.nama} dari Keranjang?
+                                </DialogTitle>
+                                <DialogDescription className="text-left text-sm md:text-base">
+                                  Apakah Anda yakin ingin menghapus <span className="font-medium text-primary">{item.nama}</span> dari keranjang belanja?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <Separator />
+                              <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 md:pt-4">
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full sm:w-auto text-sm md:text-base"
+                                  >
+                                    Batal
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  variant="destructive"
+                                  className="w-full sm:w-auto text-sm md:text-base"
+                                  onClick={async () => {
+                                    router.delete('/cart/delete', {
+                                      data: { index: index },
+                                      preserveScroll: true,
+                                      onSuccess: () => {
+                                        // Close the dialog properly
+                                        const closeBtn = document.querySelector<HTMLButtonElement>(
+                                          "[data-dialog-close-delete]"
+                                        );
+                                        closeBtn?.click();
+                                      },
+                                      onError: () => {
+                                        alert('❌ Gagal menghapus item dari keranjang!');
+                                      }
+                                    });
+                                  }}
+                                >
+                                  <Trash2 className="mr-1 h-3 w-3 md:h-4 md:w-4" />
+                                  Hapus Item
+                                </Button>
+                                <DialogClose asChild>
+                                  <button
+                                    style={{ display: "none" }}
+                                    data-dialog-close-delete
+                                  />
+                                </DialogClose>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>                    </div>
+
+                        <span className="text-right text-xs md:text-sm font-semibold mt-1">
+                          {new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                          }).format(item.harga * item.jumlah)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Summary */}
+                <div className="mt-4 pt-4 border-t space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal:</span>
+                    <span>{new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Biaya Pesan:</span>
+                    <span>{new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(biayaPesan)}</span>
+                  </div>
+                  <div className="flex justify-between text-base md:text-lg font-bold pt-2 border-t">
+                    <span>Total:</span>
+                    <span>{new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(total)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Data Pelanggan */}
+          <div className="bg-card shadow-sm border rounded-lg p-4 md:p-6">
+            <h2 className="text-base md:text-lg font-semibold mb-4">Data Pelanggan</h2>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                router.post('/cart/checkout', {
+                  nama_pelanggan: (document.getElementById("nama_pelanggan") as HTMLInputElement)?.value || "",
+                  nomor_hp: (document.getElementById("nomor_hp") as HTMLInputElement)?.value || "",
+                  waktu_pengambilan: (document.getElementById("waktu_pengambilan") as HTMLInputElement)?.value || "",
+                });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <Label htmlFor="nama_pelanggan" className="text-sm md:text-base">
+                  Nama Pelanggan
+                </Label>
+                <Input
+                  id="nama_pelanggan"
+                  type="text"
+                  name="nama_pelanggan"
+                  required
+                  className="mt-1"
+                  placeholder="Masukkan nama panggilan Anda"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="nomor_hp" className="text-sm md:text-base">
+                  Nomor HP/WA Pelanggan
+                </Label>
+                <Input
+                  id="nomor_hp"
+                  type="tel"
+                  name="nomor_hp"
+                  className="mt-1"
+                  placeholder="Masukkan nomor HP/WA Anda"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="waktu_pengambilan" className="text-sm md:text-base">
+                  Waktu Pengambilan
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="waktu_pengambilan"
+                    required
+                    name="waktu_pengambilan"
+                    type="time"
+                    className="pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs md:text-sm pointer-events-none">
+                    WITA
+                  </span>
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base md:text-lg font-semibold">Total</h3>
+                  <span className="text-base md:text-lg font-bold">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(total)}
+                  </span>
+                </div>
+
+                <Button
+                  className="w-full text-sm md:text-base py-2 md:py-3"
+                  variant="primary"
+                  type="submit"
+                  disabled={cart.length === 0}
+                >
+                  Pesan Sekarang - {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(total)}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

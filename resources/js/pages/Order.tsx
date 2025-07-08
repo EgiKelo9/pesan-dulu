@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,8 +16,8 @@ import { Label } from "@/components/ui/label";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-// import { useFlashMessages } from '@/hooks/use-flash-messages';
-
+import { Search, ShoppingCart } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 type Tenant = {
   nama: string;
@@ -30,11 +30,13 @@ type Tenant = {
 type Category = {
   id: number;
   nama: string;
+  deskripsi: string;
   menus: {
     id: number;
     nama: string;
     harga: number;
-    foto: string; // URL atau path ke foto menu
+    foto: string;
+    deskripsi: string;
   }[];
 };
 
@@ -50,25 +52,23 @@ type cart = {
   jumlah: number;
   catatan: string;
   harga_satuan: number;
-  total_harga: number; 
+  total_harga: number;
 };
 
-export default function WarungPublik({ tenant, categories, cart}: { tenant: Tenant; categories: Category[]; cart: cart[] }) {
+export default function WarungPublik({ tenant, categories, cart }: { tenant: Tenant; categories: Category[]; cart: cart[] }) {
 
-  // const { ToasterComponent } = useFlashMessages();
-  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddToCart = (data: cartItem) => {
-    
     setIsSubmitting(true);
     router.post('/cart/add', data, {
       preserveScroll: true,
       onSuccess: () => {
         setIsSubmitting(false);
-        // setIsModalOpen(false); // ✅ tutup modal saat sukses
-        router.reload({ only: ['cart'] }); // reload cart data jika perlu
+        router.reload({ only: ['cart'] });
       },
       onError: () => {
         setIsSubmitting(false);
@@ -81,33 +81,118 @@ export default function WarungPublik({ tenant, categories, cart}: { tenant: Tena
     router.get('/cart');
   }
 
-  // console.log(categories[0]?.menus[0]?.foto); // Debugging: Cek apakah foto tersedia
+  // Filter kategori berdasarkan pilihan
+  const filteredCategories = selectedCategory
+    ? categories.filter(category => category.id === selectedCategory)
+    : categories;
+
+  // Filter menu berdasarkan search query
+  const filteredCategoriesWithSearch = filteredCategories.map(category => ({
+    ...category,
+    menus: category.menus.filter(menu =>
+      menu.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      menu.deskripsi.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(category => category.menus.length > 0 || searchQuery === '');
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        {/* Kiri: Logo */}
-        <div className="flex items-center">
+    <div>
+      {/* Header - Responsive */}
+      <div className="flex flex-col sm:flex-row items-center justify-between my-1 md:my-2 gap-4 py-2 sm:py-4 px-4 sm:px-8">
+        {/* Logo - Hidden on mobile, visible on tablet+ */}
+        <div className="hidden sm:flex items-center">
           <img
-        src="/images/logo.png"
-        alt="Logo"
-        className="w-12 h-12 object-contain mr-4"
+            src="/logo-pesan-dulu-white.png"
+            alt="Logo"
+            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain mr-2 sm:mr-4"
           />
+          <span className="text-lg sm:text-xl font-bold text-[#127074] hidden md:flex">Pesan Dulu</span>
         </div>
+
         {/* Tengah: Judul dan Jam */}
-        <div className="flex flex-col items-center flex-1">
-          <h1 className="text-2xl font-bold">🍽 {tenant.nama}</h1>
-          <p className="text-gray-600">Buka mulai pukul {tenant.jam_buka} hingga {tenant.jam_tutup}</p>
+        <div className="flex flex-col items-center flex-1 text-center">
+          <h1 className="text-xl md:text-2xl font-bold">🍽 {tenant.nama}</h1>
+          <p className="text-xs md:text-sm text-gray-600">
+            Buka mulai pukul {tenant.jam_buka} hingga {tenant.jam_tutup} WITA
+          </p>
         </div>
-        {/* Kanan: Tombol Search & Cart */}
-        <div className="flex items-center space-x-2">
-          <Button size="icon" variant="outline">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-          </Button>
-            <div className="relative">
+
+        {/* Kanan: Search & Cart */}
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none md:flex-1">
+            <Input
+              placeholder="Cari menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex sm:hidden md:flex md:w-40 pr-8"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex sm:hidden md:flex"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                className="hidden sm:flex md:hidden"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cari Menu</DialogTitle>
+                <DialogDescription>
+                  Ketik nama menu yang ingin kamu cari.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="search-menu"
+                      placeholder="Cari menu..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 pr-8"
+                      autoComplete="off"
+                      autoFocus
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  onClick={() => {
+                    // Close the search dialog
+                    const closeBtn = document.querySelector<HTMLButtonElement>("[data-dialog-close]");
+                    closeBtn?.click();
+                  }}
+                >
+                  Cari
+                </Button>
+                <DialogClose asChild>
+                  <button data-dialog-close style={{ display: "none" }} />
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <div className="relative">
             <Button
               size="icon"
               variant="outline"
@@ -119,164 +204,433 @@ export default function WarungPublik({ tenant, categories, cart}: { tenant: Tena
                 }
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="7" cy="21" r="1" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="17" cy="21" r="1" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-              {/* Badge jumlah item di cart */}
+              <ShoppingCart className="h-4 w-4" />
               {cart.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   {cart.length}
                 </span>
               )}
             </Button>
-            </div>
+          </div>
         </div>
       </div>
-    <Separator/>
-      {categories.map((category) => (
-        <div key={category.id} className="mt-4">
-          <h2 className="text-xl font-semibold">{category.nama}</h2>
+
+      <Separator />
+
+      {/* Filter Kategori - Responsive */}
+      <div className="my-2">
+        <ScrollArea className="w-full rounded-md whitespace-nowrap">
+          <div className="flex w-max space-x-2 my-1 md:my-2 py-1 md:py-2 px-4 md:px-8">
+            {/* Tombol "Semua Menu" */}
+            <Button
+              variant={selectedCategory === null ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(null)}
+              className="shrink-0 text-xs sm:text-sm"
+            >
+              Semua Menu
+            </Button>
+
+            {/* Tombol untuk setiap kategori */}
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className="shrink-0 capitalize text-xs sm:text-sm"
+              >
+                {category.nama}
+              </Button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
+
+      {/* Search Results Info */}
+      {searchQuery && (
+        <div className="px-4 sm:px-8 py-2">
+          <p className="text-sm text-gray-600">
+            Hasil pencarian untuk "{searchQuery}" - {filteredCategoriesWithSearch.reduce((total, cat) => total + cat.menus.length, 0)} menu ditemukan
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="ml-2 text-primary hover:underline"
+            >
+              Hapus pencarian
+            </button>
+          </p>
+        </div>
+      )}
+
+      {/* Show message when no results found */}
+      {searchQuery && filteredCategoriesWithSearch.length === 0 && (
+        <div className="px-4 sm:px-8 py-8 text-center">
+          <p className="text-gray-500">Tidak ada menu yang ditemukan untuk "{searchQuery}"</p>
+          <button 
+            onClick={() => setSearchQuery('')}
+            className="mt-2 text-primary hover:underline"
+          >
+            Lihat semua menu
+          </button>
+        </div>
+      )}
+
+      {/* Tampilkan kategori yang difilter - Responsive */}
+      {filteredCategoriesWithSearch.map((category) => (
+        <div key={category.id} className="mt-1 sm:mt-2 pb-2 sm:pb-4 px-4 sm:px-8">
+          <h2 className="text-lg sm:text-xl font-semibold capitalize">{category.nama}</h2>
+          <p className="text-xs sm:text-sm font-light sm:mt-1 text-gray-600">{category.deskripsi}</p>
+
+          {/* Desktop/Tablet: Horizontal scroll */}
+          <div className="hidden md:block">
             <ScrollArea className="w-full rounded-md whitespace-nowrap">
-            <div className="flex w-max space-x-4 p-4">
-            {category.menus.length === 0 ? (
-              <h2 className="text-lg">Maaf, menu belum tersedia.</h2>
-            ) : (
-              category.menus.map((menu) => (
-                <div
-                  key={menu.id}
-                  className="shrink-0 border rounded-lg p-3 overflow-hidden w-96"
-                >
-                  <AspectRatio ratio={16 / 9} className="mb-4">
-                    <img
-                      src={
-                        menu.foto
-                          ? `${window.location.origin}/storage/${menu.foto}`
-                          : `${window.location.origin}/images/blank-photo-icon.jpg`
-                      }
-                      alt={menu.nama}
-                      className="rounded-lg object-fill"
-                    />
-                  </AspectRatio>
-                  <h3 className="mt-2">{menu.nama}</h3>
-                  <Dialog>
-                    <form>
-                      <DialogTrigger asChild>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-lg font-bold text-gray-900">
-                            Rp{menu.harga.toLocaleString()}
-                          </span>
-                          <Button variant="outline" type='button'>Tambah</Button>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <AspectRatio ratio={16 / 9} className="mb-4">
-                            <img
-                              src={
-                                menu.foto
-                                  ? `${window.location.origin}/storage/${menu.foto}`
-                                  : `${window.location.origin}/images/blank-photo-icon.jpg`
-                              }
-                              alt={menu.nama}
-                              className="rounded-lg"
-                            />
-                          </AspectRatio>
-                          <DialogDescription className="text-base">
-                            {menu.nama}
-                          </DialogDescription>
-                          <DialogTitle>
-                            {new Intl.NumberFormat("id-ID", {
-                              style: "currency",
-                              currency: "IDR",
-                            }).format(menu.harga)}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <Separator />
-                        <div className="grid gap-4">
-                          <div className="grid gap-3">
-                            <Label htmlFor="name-1">
-                              <span className="font-bold">Catatan</span>{" "}
-                              <span className="font-normal">(Opsional)</span>
-                            </Label>
-                            <Input
-                              id="name-1"
-                              name="name"
-                              placeholder="Goreng Kering"
-                            />
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm mr-2">Total Pesanan</span>
-                              <div className="flex items-center space-x-1">
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-7 w-7 p-0 text-base"
-                                  onClick={() =>
-                                    setQuantity((q) => Math.max(1, q - 1))
+              <div className="flex w-max space-x-4 px-2 py-4 gap-2">
+                {category.menus.length === 0 ? (
+                  <h2 className="text-lg">Maaf, menu belum tersedia.</h2>
+                ) : (
+                  category.menus.map((menu) => (
+                    <div
+                      key={menu.id}
+                      className="shrink-0 border rounded-lg p-3 overflow-hidden w-60 lg:w-72"
+                    >
+                      <AspectRatio ratio={4 / 3} className="mb-4">
+                        <img
+                          src={
+                            menu.foto
+                              ? `${window.location.origin}/storage/${menu.foto}`
+                              : `${window.location.origin}/images/blank-photo-icon.jpg`
+                          }
+                          alt={menu.nama}
+                          className="rounded-lg object-cover aspect-[4/3]"
+                        />
+                      </AspectRatio>
+                      <p className="my-2 truncate font-normal capitalize">{menu.nama}</p>
+                      <div className='flex justify-between items-start my-1'>
+                        <p className="text-lg font-semibold">
+                          {new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                          }).format(menu.harga)}
+                        </p>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="primary" size='sm'>Tambah</Button>
+                          </DialogTrigger>
+                          <DialogContent className="w-[calc(100vw-2rem)] max-w-sm md:max-w-md mx-4 md:mx-auto">
+                            <DialogHeader>
+                              <AspectRatio ratio={4 / 3} className="mb-3 md:mb-4">
+                                <img
+                                  src={
+                                    menu.foto
+                                      ? `${window.location.origin}/storage/${menu.foto}`
+                                      : `${window.location.origin}/images/blank-photo-icon.jpg`
                                   }
-                                >
-                                  −
-                                </Button>
-                                <span className="text-sm">{quantity}</span>
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="outline"
-                                  className="h-7 w-7 p-0 text-base"
-                                  onClick={() => setQuantity((q) => q + 1)}
-                                >
-                                  +
-                                </Button>
+                                  alt={menu.nama}
+                                  className="rounded-lg object-cover aspect-[4/3]"
+                                />
+                              </AspectRatio>
+                              <DialogDescription className='text-primary'>
+                                <span className='text-base md:text-lg font-medium'>{menu.nama}</span>
+                                <br />
+                                <span className='text-xs md:text-sm/4'>{menu.deskripsi}</span>
+                              </DialogDescription>
+                              <DialogTitle className="text-lg md:text-xl font-bold">
+                                {new Intl.NumberFormat("id-ID", {
+                                  style: "currency",
+                                  currency: "IDR",
+                                }).format(menu.harga)}
+                              </DialogTitle>
+                            </DialogHeader>
+                            <Separator />
+                            <div className="grid gap-2 md:gap-4">
+                              <div className="grid gap-2 md:gap-3">
+                                <Label htmlFor="name-1" className="text-sm md:text-base">
+                                  <span className="font-bold">Catatan</span>{" "}
+                                  <span className="font-normal">(Opsional)</span>
+                                </Label>
+                                <Textarea
+                                  id="name-1"
+                                  name="name"
+                                  placeholder="ex: Goreng Kering"
+                                  className="text-sm md:text-base"
+                                />
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
+                                  <div className="flex items-center space-x-2">
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="outline"
+                                      className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                      onClick={() =>
+                                        setQuantity((q) => Math.max(1, q - 1))
+                                      }
+                                    >
+                                      −
+                                    </Button>
+                                    <span className="text-xs md:text-sm font-medium min-w-[1rem] text-center">{quantity}</span>
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="outline"
+                                      className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                      onClick={() => setQuantity((q) => q + 1)}
+                                    >
+                                      +
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter className="p-0 pt-2 md:pt-4">
+                              <Button
+                                type="button"
+                                variant={"primary"}
+                                className="w-full text-sm md:text-base py-2 md:py-3"
+                                disabled={isSubmitting}
+                                onClick={async () => {
+                                  await handleAddToCart({
+                                    menu_id: menu.id,
+                                    jumlah: quantity,
+                                    catatan:
+                                      (document.getElementById(
+                                        "name-1"
+                                      ) as HTMLInputElement)?.value || "",
+                                  });
+                                  const closeBtn = document.querySelector<HTMLButtonElement>(
+                                    "[data-dialog-close]"
+                                  );
+                                  closeBtn?.click();
+                                }}
+                              >
+                                {isSubmitting
+                                  ? "Menambah..."
+                                  : `Tambah Pesanan - ${new Intl.NumberFormat("id-ID", {
+                                    style: "currency",
+                                    currency: "IDR",
+                                  }).format(menu.harga * quantity)}`}
+                              </Button>
+                              <DialogClose asChild>
+                                <button
+                                  style={{ display: "none" }}
+                                  data-dialog-close
+                                />
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+
+          {/* Mobile: Grid layout dengan ukuran seragam */}
+          <div className="block md:hidden">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 w-full">
+              {category.menus.length === 0 ? (
+                <div className="col-span-2 sm:col-span-3 text-center py-8">
+                  <h2 className="text-base">Maaf, menu belum tersedia.</h2>
+                </div>
+              ) : (
+                category.menus.map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="border rounded-lg p-2 overflow-hidden flex flex-col min-h-[280px] h-full"
+                  >
+                    <AspectRatio ratio={4 / 3} className="mb-2 flex-shrink-0">
+                      <img
+                        src={
+                          menu.foto
+                            ? `${window.location.origin}/storage/${menu.foto}`
+                            : `${window.location.origin}/images/blank-photo-icon.jpg`
+                        }
+                        alt={menu.nama}
+                        className="rounded-lg object-cover w-full h-full"
+                      />
+                    </AspectRatio>
+                    <div className="flex flex-col flex-grow">
+                      <p 
+                        className="text-sm font-normal my-1 text-left overflow-hidden flex-grow"
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}
+                      >
+                        {menu.nama}
+                      </p>
+                      <p className="text-base font-semibold mb-2 text-left">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(menu.harga)}
+                      </p>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="primary" size='sm' className="w-full text-sm mt-auto">
+                            Tambah
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="w-[calc(100vw-2rem)] max-w-80 sm:max-w-80 md:max-w-96 mx-4 md:mx-auto">
+                          <DialogHeader>
+                            <AspectRatio ratio={4 / 3} className="mb-3 md:mb-4 max-w-80 md:max-w-96">
+                              <img
+                                src={
+                                  menu.foto
+                                    ? `${window.location.origin}/storage/${menu.foto}`
+                                    : `${window.location.origin}/images/blank-photo-icon.jpg`
+                                }
+                                alt={menu.nama}
+                                className="rounded-lg object-cover aspect-[4/3]"
+                              />
+                            </AspectRatio>
+                            <DialogDescription className="text-primary text-left">
+                              <span className='text-base md:text-lg font-medium'>{menu.nama}</span>
+                              <br />
+                              <span className='text-xs md:text-sm/4'>{menu.deskripsi}</span>
+                            </DialogDescription>
+                            <DialogTitle className="text-lg md:text-xl text-left">
+                              {new Intl.NumberFormat("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                              }).format(menu.harga)}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <Separator />
+                          <div className="grid gap-3 md:gap-4">
+                            <div className="grid gap-2 md:gap-3">
+                              <Label htmlFor={`name-mobile-${menu.id}`} className="text-sm md:text-base">
+                                <span className="font-bold">Catatan</span>{" "}
+                                <span className="font-normal">(Opsional)</span>
+                              </Label>
+                              <Input
+                                id={`name-mobile-${menu.id}`}
+                                name="name"
+                                placeholder="ex: Goreng Kering"
+                                className="text-sm md:text-base"
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                    onClick={() =>
+                                      setQuantity((q) => Math.max(1, q - 1))
+                                    }
+                                  >
+                                    −
+                                  </Button>
+                                  <span className="text-xs md:text-sm font-medium min-w-[1rem] text-center">{quantity}</span>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                    onClick={() => setQuantity((q) => q + 1)}
+                                  >
+                                    +
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <DialogFooter className="p-0">
-                          <Button
-                            type="button"
-                            className="w-full"
-                            disabled={isSubmitting}
-                            onClick={async () => {
-                              await handleAddToCart({
-                                menu_id: menu.id,
-                                jumlah: quantity,
-                                catatan:
-                                  (document.getElementById(
-                                    "name-1"
-                                  ) as HTMLInputElement)?.value || "",
-                              });
-                              const closeBtn = document.querySelector<HTMLButtonElement>(
-                                "[data-dialog-close]"
-                              );
-                              closeBtn?.click();
-                            }}
-                          >
-                            {isSubmitting
-                              ? "Menambah..."
-                              : `Tambah Pesanan - Rp${(
-                                  menu.harga * quantity
-                                ).toLocaleString()}`}
-                          </Button>
-                          <DialogClose asChild>
-                            <button
-                              style={{ display: "none" }}
-                              data-dialog-close
-                            />
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </form>
-                  </Dialog>
-                </div>
-              ))
-            )}
+                          <DialogFooter className="p-0 pt-2 md:pt-4">
+                            <Button
+                              type="button"
+                              className="w-full text-sm md:text-base py-2 md:py-3"
+                              disabled={isSubmitting}
+                              onClick={async () => {
+                                await handleAddToCart({
+                                  menu_id: menu.id,
+                                  jumlah: quantity,
+                                  catatan:
+                                    (document.getElementById(
+                                      `name-mobile-${menu.id}`
+                                    ) as HTMLInputElement)?.value || "",
+                                });
+                                const closeBtn = document.querySelector<HTMLButtonElement>(
+                                  "[data-dialog-close]"
+                                );
+                                closeBtn?.click();
+                              }}
+                            >
+                              {isSubmitting
+                                ? "Menambah..."
+                                : `Tambah - Rp${(menu.harga * quantity).toLocaleString()}`}
+                            </Button>
+                            <DialogClose asChild>
+                              <button
+                                style={{ display: "none" }}
+                                data-dialog-close
+                              />
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-          <ScrollBar orientation="horizontal" />
-            </ScrollArea>
         </div>
-      ))} 
+      ))}
+
+      {/* Footer - Responsive */}
+      <footer className="mt-8 sm:mt-12 border-t bg-gray-50 rounded-lg p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Left: Logo and Company Info */}
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <img
+                src="/logo-pesan-dulu.png"
+                alt="Pesan Dulu Logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+              />
+              <span className="text-sm sm:text-base font-semibold text-[#127074]">
+                PesanDulu
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Links and Contact */}
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-xs sm:text-sm">
+            <div className="text-gray-500 text-center sm:text-right">
+              <p className="hidden sm:block">© 2025 PesanDulu. All Rights Reserved.</p>
+              <p className="sm:hidden">© 2025 PesanDulu</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom: Additional Info (only on larger screens) */}
+        <div className="hidden sm:block mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <span>📍 Alamat: {tenant.alamat}</span>
+              <span>📞 Telepon: {tenant.telepon}</span>
+            </div>
+            <div>
+              <span>🕐 Jam Operasional: {tenant.jam_buka} - {tenant.jam_tutup} WITA</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Simplified tenant info */}
+        <div className="block sm:hidden mt-3 pt-3 border-t border-gray-200 text-center">
+          <div className="text-xs text-gray-500 space-y-1">
+            <p>📍 {tenant.alamat}</p>
+            <p>📞 {tenant.telepon}</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

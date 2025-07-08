@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Report;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Order extends Model
@@ -18,25 +20,8 @@ class Order extends Model
      * @var list<string>
      */
     protected $guarded = [];
-    
-    // public function grantCustomAccess(string $role, string $access): void
-    // {
-    //     $aksesRoles = AksesRole::where('akses', $access)->get();
-    //     if ($aksesRoles->isEmpty()) return;
 
-    //     foreach ($aksesRoles as $aksesRole) {
-    //         $roleStatus = ($aksesRole->nama_role === $role) ? true : false;
-    //         $existingAccess = $this->aksesRoles()->where('akses_role_id', $aksesRole->id)->first();
-
-    //         if ($existingAccess) {
-    //             $this->aksesRoles()->updateExistingPivot($aksesRole->id, ['status' => $roleStatus]);
-    //         } else {
-    //             $this->aksesRoles()->attach($aksesRole->id, ['status' => $roleStatus]);
-    //         }
-    //     }
-    // }
-
-    public function addOrderMenu(int $menuId, int $jumlah, int $hargaSatuan, string $catatan = null): void
+    public function addOrderMenu(int $menuId, int $jumlah, int $hargaSatuan, string $catatan): void
     {
         $totalHarga = $hargaSatuan * $jumlah;
         $this->menus()->attach([
@@ -54,7 +39,7 @@ class Order extends Model
         return $this->belongsTo(Tenant::class, 'tenant_id');
     }
 
-    public function report(): BelongsTo
+    public function report(): HasMany
     {
         return $this->hasMany(Report::class, 'order_id');
     }

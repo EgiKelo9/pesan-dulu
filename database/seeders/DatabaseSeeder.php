@@ -20,6 +20,6 @@ class DatabaseSeeder extends Seeder
         User::factory(1, ['role' => 'admin'])->create();
         Tenant::factory(4)->create();
         Category::factory(20)->recycle([Tenant::all()])->withMenus()->create();
-        Order::factory(50)->recycle([Tenant::all()])->withMenus()->create();
+        Order::factory(100)->recycle([Tenant::all()])->withMenus()->create();
     }
 }

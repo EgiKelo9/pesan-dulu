@@ -63,6 +63,9 @@ Route::post('/cart/add', [GuestController::class, 'add']);
 Route::post('/cart/update', [GuestController::class, 'updateCart'])
     ->name('cart.update');
 
+Route::delete('/cart/delete', [GuestController::class, 'deleteItemCart'])
+    ->name('cart.delete');
+
 Route::post('/cart/checkout', [GuestController::class, 'checkout'])
     ->name('cart.checkout');
 
@@ -70,7 +73,7 @@ Route::get('/cart/payment', [GuestController::class, 'showPayment'])
     ->name('payment.show');
 
 Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
-    ->name('payment.confirm');
+    ->name('cart.payment');
 
 Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan'])
     ->name('pantauPesanan');
