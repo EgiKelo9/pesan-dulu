@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@radix-ui/react-separator";
@@ -25,6 +26,10 @@ export function RiwayatDropdown({ riwayat }: { riwayat: RiwayatItem[] }) {
         <Button variant="outline"><History /></Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto" align="end">
+        <DropdownMenuLabel>
+            Riwayat Pemesanan
+        </DropdownMenuLabel>
+        <Separator></Separator>
         {riwayat.length === 0 && (
           <DropdownMenuItem disabled>Tidak ada riwayat pesanan.</DropdownMenuItem>
         )}

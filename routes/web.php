@@ -13,9 +13,7 @@ use App\Http\Controllers\Merchant\TenantController;
 use App\Http\Controllers\GuestController;
 
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+Route::get('/', [GuestController::class, 'home'])->name('home');
 
 Route::middleware('guest')->group(function () {
 
@@ -83,8 +81,7 @@ Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan
 Route::post('/laporan/{id_order}', [GuestController::class, 'buatLaporan'])
     ->name('buatLaporan');
 
-Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
-->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
+Route::get('/{slug}', [GuestController::class, 'tampilkanWarung']);
 
 // Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
 //     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');

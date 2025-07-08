@@ -90,7 +90,7 @@ export default function Payment() {
       onError: (errors) => {
         setIsSubmitting(false);
         console.error('Upload error:', errors);
-        
+
         // Handle specific error messages
         if (errors.bukti_pembayaran) {
           alert(`Error: ${errors.bukti_pembayaran[0]}`);
@@ -162,84 +162,84 @@ export default function Payment() {
               </div>
             </div>
 
-        {/* Upload Section */}
-        <div className="flex-1 order-1 lg:order-0">
-          <h2 className="text-lg md:text-xl font-semibold mb-4">Unggah Bukti Pembayaran</h2>
-          <div
-            className="border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center h-40 md:h-48 cursor-pointer mb-4 md:mb-6 relative hover:border-gray-500 transition-colors"
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={(e) => {
-              // Agar klik tombol X tidak trigger file input
-              if ((e.target as HTMLElement).id !== "remove-preview") {
-                document.getElementById("bukti_pembayaran")?.click();
-              }
-            }}
-            style={{ transition: "border-color 0.2s" }}
-          >
-            {!qrisPreview ? (
-              <>
-                <FiImage size={32} className="md:hidden text-gray-400 mb-2" />
-                <FiImage size={40} className="hidden md:block text-gray-400 mb-2" />
-                <div className="text-gray-500 mb-1 text-center px-4 text-sm md:text-base">
-                  <span className="block md:hidden">
-                    Ketuk untuk memilih gambar atau{" "}
-                    <span className="underline font-semibold">jelajahi file</span>
-                  </span>
-                  <span className="hidden md:block">
-                    Seret dan jatuhkan gambar Anda disini atau{" "}
-                    <span className="underline font-semibold">jelajahi dokumen</span>
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="relative w-full h-40 md:h-48 flex items-center justify-center">
-                <img
-                  src={qrisPreview}
-                  alt="Preview Bukti Pembayaran"
-                  className="max-h-32 md:max-h-40 max-w-full w-auto h-auto object-contain rounded-lg border mx-auto"
-                  style={{ background: "#f9fafb" }}
+            {/* Upload Section */}
+            <div className="flex-1 order-1 lg:order-0">
+              <h2 className="text-lg md:text-xl font-semibold mb-4">Unggah Bukti Pembayaran</h2>
+              <div
+                className="border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center h-40 md:h-48 cursor-pointer mb-4 md:mb-6 relative hover:border-gray-500 transition-colors"
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  // Agar klik tombol X tidak trigger file input
+                  if ((e.target as HTMLElement).id !== "remove-preview") {
+                    document.getElementById("bukti_pembayaran")?.click();
+                  }
+                }}
+                style={{ transition: "border-color 0.2s" }}
+              >
+                {!qrisPreview ? (
+                  <>
+                    <FiImage size={32} className="md:hidden text-gray-400 mb-2" />
+                    <FiImage size={40} className="hidden md:block text-gray-400 mb-2" />
+                    <div className="text-gray-500 mb-1 text-center px-4 text-sm md:text-base">
+                      <span className="block md:hidden">
+                        Ketuk untuk memilih gambar atau{" "}
+                        <span className="underline font-semibold">jelajahi file</span>
+                      </span>
+                      <span className="hidden md:block">
+                        Seret dan jatuhkan gambar Anda disini atau{" "}
+                        <span className="underline font-semibold">jelajahi dokumen</span>
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative w-full h-40 md:h-48 flex items-center justify-center">
+                    <img
+                      src={qrisPreview}
+                      alt="Preview Bukti Pembayaran"
+                      className="max-h-32 md:max-h-40 max-w-full w-auto h-auto object-contain rounded-lg border mx-auto"
+                      style={{ background: "#f9fafb" }}
+                    />
+                    <Button
+                      id="remove-preview"
+                      type="button"
+                      className="absolute top-1 right-1 md:top-2 md:right-2 bg-white rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center p-0 shadow hover:bg-red-500 hover:text-white transition text-xs md:text-sm"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setFile(null);
+                        setQrisPreview(null);
+                        const input = document.getElementById("bukti_pembayaran") as HTMLInputElement;
+                        if (input) input.value = "";
+                      }}
+                    >
+                      &#10005;
+                    </Button>
+                  </div>
+                )}
+                <input
+                  id="bukti_pembayaran"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
                 />
-                <Button
-                  id="remove-preview"
-                  type="button"
-                  className="absolute top-1 right-1 md:top-2 md:right-2 bg-white rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center p-0 shadow hover:bg-red-500 hover:text-white transition text-xs md:text-sm"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setFile(null);
-                    setQrisPreview(null);
-                    const input = document.getElementById("bukti_pembayaran") as HTMLInputElement;
-                    if (input) input.value = "";
-                  }}
-                >
-                  &#10005;
-                </Button>
               </div>
-            )}
-            <input
-              id="bukti_pembayaran"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </div>
-          {file && (
-            <div className="flex items-center rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6 bg-card border">
-              <FiImage size={24} className="md:hidden text-gray-400 mr-2" />
-              <FiImage size={32} className="hidden md:block text-gray-400 mr-3" />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm md:text-base truncate">{file.name}</div>
-                <div className="text-xs text-gray-500 truncate">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
+              {file && (
+                <div className="flex items-center rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6 bg-card border">
+                  <FiImage size={24} className="md:hidden text-gray-400 mr-2" />
+                  <FiImage size={32} className="hidden md:block text-gray-400 mr-3" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm md:text-base truncate">{file.name}</div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                  </div>
+                  <FiCheckCircle size={20} className="md:hidden text-green-500 ml-2 flex-shrink-0" />
+                  <FiCheckCircle size={28} className="hidden md:block text-green-500 ml-2 flex-shrink-0" />
                 </div>
-              </div>
-              <FiCheckCircle size={20} className="md:hidden text-green-500 ml-2 flex-shrink-0" />
-              <FiCheckCircle size={28} className="hidden md:block text-green-500 ml-2 flex-shrink-0" />
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
           {/* Confirmation Button */}
           <div className="mt-6 md:mt-8 sticky bottom-0 bg-background pt-4 border-t lg:border-t-0 lg:bg-transparent lg:pt-0 lg:static">
@@ -249,7 +249,7 @@ export default function Payment() {
               onClick={handleSubmit}
               type="button"
             >
-              {isSubmitting 
+              {isSubmitting
                 ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24">
@@ -258,9 +258,9 @@ export default function Payment() {
                     </svg>
                     Mengunggah...
                   </span>
-                ) 
-                : (!file 
-                  ? 'Pilih Bukti Pembayaran' 
+                )
+                : (!file
+                  ? 'Pilih Bukti Pembayaran'
                   : 'Konfirmasi Pembayaran'
                 )
               }
