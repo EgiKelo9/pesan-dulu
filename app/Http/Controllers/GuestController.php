@@ -263,10 +263,6 @@ class GuestController extends Controller
                 'bukti_pembayaran' => $imagePath,
                 'tenant_id' => $tenant->id,
             ]);
-            \Log::info('DEBUG: Mulai proses attach menu ke order', [
-                'order_id' => $order->id,
-                'cart' => $cart
-            ]);
             foreach ($cart as $item) {
                 $menu = Menu::find($item['menu_id']);
                 if ($menu) {
@@ -277,17 +273,8 @@ class GuestController extends Controller
                         'catatan' => $item['catatan']
                     ]);
                     $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
-                    \Log::info('DEBUG: Menu berhasil ditambahkan ke order', [
-                        'order_id' => $order->id,
-                        'menu_id' => $menu->id
-                    ]);
                     // Cek isi order_menu setelah insert
-                    $orderMenus = \DB::table('order_menu')->where('order_id', $order->id)->get();
-                    // dd($orderMenus);
-                    \Log::info('DEBUG: Isi order_menu setelah insert', [
-                        'order_id' => $order->id,
-                        'order_menu' => $orderMenus
-                    ]);
+                    $orderMenus = Order::with('menus')->where('order_id', $order->id)->get();
 
                 } else {
                     throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
