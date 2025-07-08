@@ -242,39 +242,6 @@ class GuestController extends Controller
                 'bukti_pembayaran' => $imagePath,
                 'tenant_id' => $tenant->id,
             ]);
-
-
-            // Tambahkan item ke order
-            // foreach ($cart as $item) {
-            //     $menu = Menu::find($item['menu_id']);
-            //     if ($menu && $item['jumlah'] > 0) {
-            //         // dd($menu , $item);
-            //         // \Log::info('Akan attach menu', ['menu_id' => $menu->id], $menu, $item);
-            //         // $order->menus()->attach($menu->id, [
-            //         //     'jumlah' => $item['jumlah'],
-            //         //     'harga_satuan' => $menu->harga,
-            //         //     'total_harga' => $menu->harga * $item['jumlah'],
-            //         //     'catatan' => $item['catatan'],
-            //         // ]);
-            //         // \DB::table('order_menu')->insert([
-            //         //     'order_id' => $order->id,
-            //         //     'menu_id' => $menu->id,
-            //         //     'jumlah' => $item['jumlah'],
-            //         //     'harga_satuan' => $menu->harga,
-            //         //     'total_harga' => $menu->harga * $item['jumlah'],
-            //         //     'catatan' => $item['catatan'],
-            //         //     'created_at' => now(),
-            //         //     'updated_at' => now(),
-            //         // ]);
-            //         $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
-            //         // dd($order->menus);
-            //         // \Log::info('Isi order_menu:', \DB::table('order_menu')->get()->toArray());
-            //         \Log::info('Menu berhasil ditambahkan ke order', ['menu_id' => $menu->id]);
-            //     } else {
-            //         \Log::error('Menu tidak ditemukan', ['menu_id' => $item['menu_id']]);
-            //         throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
-            //     }
-            // }
             \Log::info('DEBUG: Mulai proses attach menu ke order', [
                 'order_id' => $order->id,
                 'cart' => $cart
@@ -302,6 +269,7 @@ class GuestController extends Controller
                     ]);
                     // Cek isi order_menu setelah insert
                     $orderMenus = \DB::table('order_menu')->where('order_id', $order->id)->get();
+                    dd($orderMenus);
                     \Log::info('DEBUG: Isi order_menu setelah insert', [
                         'order_id' => $order->id,
                         'order_menu' => $orderMenus
@@ -420,6 +388,16 @@ class GuestController extends Controller
         ]);
         return response()->json(['message' => 'Laporan berhasil disimpan']);
         // dd($request, $id_order);
+    }
+
+    public function home(){
+        // Ambil semua tenant
+        $tenants = Tenant::select('nama', 'jam_buka', 'jam_tutup', 'tautan')->get();
+
+        // dd($tenants);
+        return Inertia::render('welcome', [
+            'tenants' => $tenants,
+        ]);
     }
 
 }
