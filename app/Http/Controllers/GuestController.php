@@ -252,7 +252,7 @@ class GuestController extends Controller
                     ]);
                     // Cek isi order_menu setelah insert
                     $orderMenus = \DB::table('order_menu')->where('order_id', $order->id)->get();
-                    dd($orderMenus);
+                    // dd($orderMenus);
                     \Log::info('DEBUG: Isi order_menu setelah insert', [
                         'order_id' => $order->id,
                         'order_menu' => $orderMenus

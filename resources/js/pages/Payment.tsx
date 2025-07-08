@@ -97,7 +97,7 @@ export default function Payment() {
         } else if (errors.cart) {
           alert(`Error: ${errors.cart[0]}`);
         } else {
-          alert('Gagal mengunggah bukti pembayaran. Silakan coba lagi.');
+          alert(`Gagal mengunggah bukti pembayaran. Silakan coba lagi.`);
         }
       },
       onFinish: () => {

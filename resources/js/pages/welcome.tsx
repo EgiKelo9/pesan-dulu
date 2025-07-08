@@ -1,6 +1,19 @@
-import React from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input";
+import { Search} from 'lucide-react';
+
 
 type Tenant = {
   nama: string;
@@ -10,6 +23,7 @@ type Tenant = {
 };
 
 export default function WarungPublik({ tenants }: { tenants: Tenant[] }) {
+      const [searchQuery, setSearchQuery] = useState('');
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -27,18 +41,63 @@ export default function WarungPublik({ tenants }: { tenants: Tenant[] }) {
         </div>
         {/* Kanan: Search */}
         <div className="flex items-center space-x-2">
-          <Button size="icon" variant="outline">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-              <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          </Button>
+        <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                className="hidden sm:flex md:hidden"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cari Menu</DialogTitle>
+                <DialogDescription>
+                  Ketik nama menu yang ingin kamu cari.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="search-menu"
+                      placeholder="Cari menu..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1 pr-8"
+                      autoComplete="off"
+                      autoFocus
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  onClick={() => {
+                    // Close the search dialog
+                    const closeBtn = document.querySelector<HTMLButtonElement>("[data-dialog-close]");
+                    closeBtn?.click();
+                  }}
+                >
+                  Cari
+                </Button>
+                <DialogClose asChild>
+                  <button data-dialog-close style={{ display: "none" }} />
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
