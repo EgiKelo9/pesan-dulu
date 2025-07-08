@@ -232,15 +232,10 @@ class GuestController extends Controller
                 'bukti_pembayaran' => $imagePath,
                 'tenant_id' => $tenant->id,
             ]);
-<<<<<<< HEAD
             \Log::info('DEBUG: Mulai proses attach menu ke order', [
                 'order_id' => $order->id,
                 'cart' => $cart
             ]);
-=======
-
-            // Add items to order - FIX THE ORDER MENU CREATION
->>>>>>> 5da51f2d807fb066223b7a820e407388ddf30993
             foreach ($cart as $item) {
                 $menu = Menu::find($item['menu_id']);
                 if ($menu) {
@@ -248,7 +243,6 @@ class GuestController extends Controller
                         'jumlah' => $item['jumlah'],
                         'harga_satuan' => $menu->harga,
                         'total_harga' => $menu->harga * $item['jumlah'],
-<<<<<<< HEAD
                         'catatan' => $item['catatan']
                     ]);
                     $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
@@ -262,10 +256,8 @@ class GuestController extends Controller
                     \Log::info('DEBUG: Isi order_menu setelah insert', [
                         'order_id' => $order->id,
                         'order_menu' => $orderMenus
-=======
-                        'catatan' => $item['catatan'],
->>>>>>> 5da51f2d807fb066223b7a820e407388ddf30993
                     ]);
+
                 } else {
                     throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
                 }
@@ -392,7 +384,6 @@ class GuestController extends Controller
         ]);
         return response()->json(['message' => 'Laporan berhasil disimpan']);
     }
-<<<<<<< HEAD
 
     public function home(){
         // Ambil semua tenant
@@ -404,6 +395,4 @@ class GuestController extends Controller
         ]);
     }
 
-=======
->>>>>>> 5da51f2d807fb066223b7a820e407388ddf30993
 }
