@@ -40,7 +40,11 @@ export const OrderColumns: ColumnDef<Order>[] = createTableColumns<Order>({
             header: "Waktu Diambil",
             sortable: true,
             type: "custom",
+<<<<<<< HEAD
             customRenderer: (row) => {
+=======
+	    customRenderer: (row) => {
+>>>>>>> f658450 (test)
                 return (
                     <span>{String(row.waktu_diambil).slice(0, 5)} WITA</span>
                 )

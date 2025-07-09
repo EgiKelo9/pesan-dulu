@@ -178,6 +178,14 @@ export function createTableColumns<T extends BaseEntity>(
             );
           case "date":
             const dateValue = new Date(value);
+	    if (typeof timeValue === 'string') {
+              const [hours, minutes, seconds] = timeValue.split(':');
+              return (
+                <span>
+                  {`${hours}:${minutes}`} WITA
+                </span>
+              );
+            }
             if (!isNaN(dateValue.getTime())) {
               const day = dateValue.getDate().toString().padStart(2, '0');
               const month = (dateValue.getMonth() + 1).toString().padStart(2, '0');
