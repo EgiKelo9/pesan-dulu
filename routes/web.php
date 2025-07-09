@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\TenantController as AdminTenantController;
 use App\Http\Controllers\Merchant\CategoryController;
 use App\Http\Controllers\Merchant\MenuController;
@@ -49,10 +50,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tenant', AdminTenantController::class);
         Route::put('tenant/{tenant}/status', [AdminTenantController::class, 'updateStatus'])
             ->name('tenant.updateStatus');
+        Route::resource('report', ReportController::class);
     });
 
-
-    
 });
 
 Route::get('/cart', [GuestController::class, 'cart'])
@@ -63,9 +63,6 @@ Route::post('/cart/add', [GuestController::class, 'add']);
 Route::post('/cart/update', [GuestController::class, 'updateCart'])
     ->name('cart.update');
 
-Route::delete('/cart/delete', [GuestController::class, 'deleteItemCart'])
-    ->name('cart.delete');
-
 Route::post('/cart/checkout', [GuestController::class, 'checkout'])
     ->name('cart.checkout');
 
@@ -73,7 +70,7 @@ Route::get('/cart/payment', [GuestController::class, 'showPayment'])
     ->name('payment.show');
 
 Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
-    ->name('cart.payment');
+    ->name('payment.confirm');
 
 Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan'])
     ->name('pantauPesanan');
@@ -81,7 +78,9 @@ Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan
 Route::post('/laporan/{id_order}', [GuestController::class, 'buatLaporan'])
     ->name('buatLaporan');
 
-Route::get('/{slug}', [GuestController::class, 'tampilkanWarung']);
+    
+Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
+    ->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
 
 // Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
 //     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');
