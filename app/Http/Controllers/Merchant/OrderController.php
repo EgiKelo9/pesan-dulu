@@ -29,23 +29,7 @@ class OrderController extends Controller
             'orders' => $orders,
         ]);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
+    
     /**
      * Display the specified resource.
      */
@@ -62,27 +46,17 @@ class OrderController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $tenant = auth('web')->user()->tenant;
+        if (!$tenant) {
+            return redirect()->route('merchant.tenant.create')->with('warning', 'Silakan buat warung terlebih dahulu.');
+        }
+        $order = $tenant->orders()->findOrFail($id);
+        $order->update(['status' => 'gagal']);
+        return redirect()->back()->with('success', "Status pesanan {$order->id} diatur menjadi {$order->status}.");
     }
 
     /**

@@ -188,14 +188,6 @@ class TenantController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
-    /**
      * Update status field based on toggle switch.
      */
     public function updateStatus(Request $request, string $status)

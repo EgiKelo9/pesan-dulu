@@ -62,7 +62,7 @@ type RiwayatItem = {
   total_harga: number;
   jumlah_item: number;
   tanggal_pesanan: string;
-  status: string;
+  status: 'menunggu' | 'diterima' | 'siap' | 'diambil' | 'gagal';
 };
 
 export default function WarungPublik({ tenant, categories, cart, riwayat }: { tenant: Tenant; categories: Category[]; cart: cart[], riwayat: RiwayatItem[] }) {
@@ -110,20 +110,26 @@ export default function WarungPublik({ tenant, categories, cart, riwayat }: { te
       {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row items-center justify-between my-1 md:my-2 gap-4 py-2 sm:py-4 px-4 sm:px-8">
         {/* Logo - Hidden on mobile, visible on tablet+ */}
-        <div className="hidden sm:flex items-center">
+        <a href='/' className="hidden sm:flex items-center">
           <img
             src="/logo-pesan-dulu-white.png"
             alt="Logo"
-            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain mr-2 sm:mr-4"
+            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain mr-1 sm:mr-2"
           />
-          <span className="text-lg sm:text-xl font-bold text-[#127074] hidden md:flex">Pesan Dulu</span>
-        </div>
+          <span className="text-lg sm:text-xl font-bold text-[#127074] hidden sm:flex">Pesan Dulu</span>
+        </a>
 
         {/* Tengah: Judul dan Jam */}
         <div className="flex flex-col items-center flex-1 text-center">
           <h1 className="text-xl md:text-2xl font-bold">🍽 {tenant.nama}</h1>
           <p className="text-xs md:text-sm text-gray-600">
-            Buka mulai pukul {tenant.jam_buka} hingga {tenant.jam_tutup} WITA
+            Buka mulai pukul {new Date(`1970-01-01T${tenant.jam_buka}`).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })} WITA hingga {new Date(`1970-01-01T${tenant.jam_tutup}`).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })} WITA
           </p>
         </div>
 
@@ -139,22 +145,24 @@ export default function WarungPublik({ tenant, categories, cart, riwayat }: { te
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex sm:hidden md:flex"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex sm:hidden"
               >
                 ✕
               </button>
             )}
           </div>
           <Dialog>
-            <DialogTrigger className='hidden md:flex' asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="flex"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
+            <div className='hidden sm:flex'>
+              <DialogTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="flex"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+            </div>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Cari Menu</DialogTitle>
@@ -293,152 +301,162 @@ export default function WarungPublik({ tenant, categories, cart, riwayat }: { te
           <h2 className="text-lg sm:text-xl font-semibold capitalize">{category.nama}</h2>
           <p className="text-xs sm:text-sm font-light sm:mt-1 text-gray-600">{category.deskripsi}</p>
 
-          {/* Desktop/Tablet: Horizontal scroll */}
+          {/* Desktop/Tablet: Grid layout (same as mobile but with more columns) */}
           <div className="hidden md:block">
-            <ScrollArea className="w-full rounded-md whitespace-nowrap">
-              <div className="flex w-max space-x-4 px-2 py-4 gap-2">
-                {category.menus.length === 0 ? (
+            <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4 w-full">
+              {category.menus.length === 0 ? (
+                <div className="col-span-3 lg:col-span-4 xl:col-span-5 text-center py-8">
                   <h2 className="text-lg">Maaf, menu belum tersedia.</h2>
-                ) : (
-                  category.menus.map((menu) => (
-                    <div
-                      key={menu.id}
-                      className="shrink-0 border rounded-lg p-3 overflow-hidden w-60 lg:w-72"
-                    >
-                      <AspectRatio ratio={4 / 3} className="mb-4">
-                        <img
-                          src={
-                            menu.foto
-                              ? `${window.location.origin}/storage/${menu.foto}`
-                              : `${window.location.origin}/images/blank-photo-icon.jpg`
-                          }
-                          alt={menu.nama}
-                          className="rounded-lg object-cover aspect-[4/3]"
-                        />
-                      </AspectRatio>
-                      <p className="my-2 truncate font-normal capitalize">{menu.nama}</p>
-                      <div className='flex justify-between items-start my-1'>
-                        <p className="text-lg font-semibold">
-                          {new Intl.NumberFormat("id-ID", {
-                            style: "currency",
-                            currency: "IDR",
-                          }).format(menu.harga)}
-                        </p>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="primary" size='sm'>Tambah</Button>
-                          </DialogTrigger>
-                          <DialogContent className="w-[calc(100vw-2rem)] max-w-sm md:max-w-md mx-4 md:mx-auto">
-                            <DialogHeader>
-                              <AspectRatio ratio={4 / 3} className="mb-3 md:mb-4">
-                                <img
-                                  src={
-                                    menu.foto
-                                      ? `${window.location.origin}/storage/${menu.foto}`
-                                      : `${window.location.origin}/images/blank-photo-icon.jpg`
-                                  }
-                                  alt={menu.nama}
-                                  className="rounded-lg object-cover aspect-[4/3]"
-                                />
-                              </AspectRatio>
-                              <DialogDescription className='text-primary'>
-                                <span className='text-base md:text-lg font-medium'>{menu.nama}</span>
-                                <br />
-                                <span className='text-xs md:text-sm/4'>{menu.deskripsi}</span>
-                              </DialogDescription>
-                              <DialogTitle className="text-lg md:text-xl font-bold">
-                                {new Intl.NumberFormat("id-ID", {
-                                  style: "currency",
-                                  currency: "IDR",
-                                }).format(menu.harga)}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <Separator />
-                            <div className="grid gap-2 md:gap-4">
-                              <div className="grid gap-2 md:gap-3">
-                                <Label htmlFor="name-1" className="text-sm md:text-base">
-                                  <span className="font-bold">Catatan</span>{" "}
-                                  <span className="font-normal">(Opsional)</span>
-                                </Label>
-                                <Textarea
-                                  id="name-1"
-                                  name="name"
-                                  placeholder="ex: Goreng Kering"
-                                  className="text-sm md:text-base"
-                                />
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
-                                  <div className="flex items-center space-x-2">
-                                    <Button
-                                      type="button"
-                                      size="icon"
-                                      variant="outline"
-                                      className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
-                                      onClick={() =>
-                                        setQuantity((q) => Math.max(1, q - 1))
-                                      }
-                                    >
-                                      −
-                                    </Button>
-                                    <span className="text-xs md:text-sm font-medium min-w-[1rem] text-center">{quantity}</span>
-                                    <Button
-                                      type="button"
-                                      size="icon"
-                                      variant="outline"
-                                      className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
-                                      onClick={() => setQuantity((q) => q + 1)}
-                                    >
-                                      +
-                                    </Button>
-                                  </div>
+                </div>
+              ) : (
+                category.menus.map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="border rounded-lg p-3 overflow-hidden flex flex-col h-full"
+                  >
+                    <AspectRatio ratio={4 / 3} className="mb-3 flex-shrink-0">
+                      <img
+                        src={
+                          menu.foto
+                            ? `${window.location.origin}/storage/${menu.foto}`
+                            : `${window.location.origin}/images/blank-photo-icon.jpg`
+                        }
+                        alt={menu.nama}
+                        className="rounded-lg object-cover w-full h-full"
+                      />
+                    </AspectRatio>
+                    <div className="flex flex-col flex-grow">
+                      <p
+                        className="text-sm font-normal my-2 text-left overflow-hidden flex-grow"
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}
+                      >
+                        {menu.nama}
+                      </p>
+                      <p className="text-lg font-semibold mb-3 text-left">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(menu.harga)}
+                      </p>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="primary" size='sm' className="w-full mt-auto">
+                            Tambah
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-80 sm:max-w-80 md:max-w-96 mx-4 md:mx-auto">
+                          <DialogHeader>
+                            <AspectRatio ratio={4 / 3} className="mb-3 md:mb-4 max-w-80 md:max-w-96">
+                              <img
+                                src={
+                                  menu.foto
+                                    ? `${window.location.origin}/storage/${menu.foto}`
+                                    : `${window.location.origin}/images/blank-photo-icon.jpg`
+                                }
+                                alt={menu.nama}
+                                className="rounded-lg object-cover aspect-[4/3]"
+                              />
+                            </AspectRatio>
+                            <DialogDescription className='text-primary text-left'>
+                              <span className='text-base md:text-lg font-medium'>{menu.nama}</span>
+                              <br />
+                              <span className='text-xs md:text-sm/4'>{menu.deskripsi}</span>
+                            </DialogDescription>
+                            <DialogTitle className="text-lg md:text-xl font-bold text-left">
+                              {new Intl.NumberFormat("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                              }).format(menu.harga)}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <Separator />
+                          <div className="grid gap-2 md:gap-4">
+                            <div className="grid gap-2 md:gap-3">
+                              <Label htmlFor={`name-desktop-${menu.id}`} className="text-sm md:text-base">
+                                <span className="font-bold">Catatan</span>{" "}
+                                <span className="font-normal">(Opsional)</span>
+                              </Label>
+                              <Textarea
+                                id={`name-desktop-${menu.id}`}
+                                name="name"
+                                placeholder="ex: Goreng Kering"
+                                className="text-xs md:text-sm"
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                    onClick={() =>
+                                      setQuantity((q) => Math.max(1, q - 1))
+                                    }
+                                  >
+                                    −
+                                  </Button>
+                                  <span className="text-xs md:text-sm font-medium min-w-[1rem] text-center">{quantity}</span>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6 md:h-7 md:w-7 p-0 text-sm md:text-base"
+                                    onClick={() => setQuantity((q) => q + 1)}
+                                  >
+                                    +
+                                  </Button>
                                 </div>
                               </div>
                             </div>
-                            <DialogFooter className="p-0 pt-2 md:pt-4">
-                              <Button
-                                type="button"
-                                variant={"primary"}
-                                className="w-full text-sm md:text-base py-2 md:py-3"
-                                disabled={isSubmitting}
-                                onClick={async () => {
-                                  await handleAddToCart({
-                                    menu_id: menu.id,
-                                    jumlah: quantity,
-                                    catatan:
-                                      (document.getElementById(
-                                        "name-1"
-                                      ) as HTMLInputElement)?.value || "",
-                                  });
-                                  const closeBtn = document.querySelector<HTMLButtonElement>(
-                                    "[data-dialog-close]"
-                                  );
-                                  closeBtn?.click();
-                                  setQuantity(1);
-                                }}
-                              >
-                                {isSubmitting
-                                  ? "Menambah..."
-                                  : `Tambah Pesanan - ${new Intl.NumberFormat("id-ID", {
-                                    style: "currency",
-                                    currency: "IDR",
-                                  }).format(menu.harga * quantity)}`}
-                              </Button>
-                              <DialogClose asChild>
-                                <button
-                                  style={{ display: "none" }}
-                                  data-dialog-close
-                                />
-                              </DialogClose>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                          </div>
+                          <DialogFooter className="p-0 pt-2 md:pt-4">
+                            <Button
+                              type="button"
+                              variant={"primary"}
+                              className="w-full text-sm md:text-base py-2 md:py-3"
+                              disabled={isSubmitting}
+                              onClick={async () => {
+                                await handleAddToCart({
+                                  menu_id: menu.id,
+                                  jumlah: quantity,
+                                  catatan:
+                                    (document.getElementById(
+                                      `name-desktop-${menu.id}`
+                                    ) as HTMLInputElement)?.value || "",
+                                });
+                                const closeBtn = document.querySelector<HTMLButtonElement>(
+                                  "[data-dialog-close]"
+                                );
+                                closeBtn?.click();
+                                setQuantity(1);
+                              }}
+                            >
+                              {isSubmitting
+                                ? "Menambah..."
+                                : `Tambah Pesanan - ${new Intl.NumberFormat("id-ID", {
+                                  style: "currency",
+                                  currency: "IDR",
+                                }).format(menu.harga * quantity)}`}
+                            </Button>
+                            <DialogClose asChild>
+                              <button
+                                style={{ display: "none" }}
+                                data-dialog-close
+                              />
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                  ))
-                )}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Mobile: Grid layout dengan ukuran seragam */}
@@ -524,7 +542,7 @@ export default function WarungPublik({ tenant, categories, cart, riwayat }: { te
                                 id={`name-mobile-${menu.id}`}
                                 name="name"
                                 placeholder="ex: Goreng Kering"
-                                className="text-sm md:text-base"
+                                className="text-xs md:text-sm"
                               />
                               <div className="flex items-center justify-between">
                                 <span className="text-xs md:text-sm mr-2">Total Pesanan</span>
@@ -557,6 +575,7 @@ export default function WarungPublik({ tenant, categories, cart, riwayat }: { te
                           <DialogFooter className="p-0 pt-2 md:pt-4">
                             <Button
                               type="button"
+                              variant={'primary'}
                               className="w-full text-sm md:text-base py-2 md:py-3"
                               disabled={isSubmitting}
                               onClick={async () => {

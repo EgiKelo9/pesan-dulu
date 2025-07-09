@@ -97,7 +97,7 @@ export default function ShowOrder({ order }: { order: OrderData }) {
                             id='waktudiambil'
                             type='text'
                             tabIndex={4}
-                            value={String(order.waktu_diambil)}
+                            value={String(order.waktu_diambil).substring(0, 5)}
                             disabled
                             className="w-full"
                         />
@@ -126,17 +126,72 @@ export default function ShowOrder({ order }: { order: OrderData }) {
                         />
                     </div>
                     <div className='grid gap-4 mt-2 col-span-2 sm:col-span-4 md:col-span-2 lg:col-span-4'>
-                        <Label htmlFor='detailpesanan'>Detail Pesanan</Label>
-                        <Textarea
-                            id='detailpesanan'
-                            value={order.menus.map(
-                                menu => `${menu.nama} - (${menu.pivot.jumlah} x Rp${menu.harga.toLocaleString('id-ID')})`)
-                                .join('\n')
-                                .concat(`\n\nTotal Harga: Rp${order.total_harga.toLocaleString('id-ID')}`
-                                )}
-                            disabled
-                            className="w-full min-h-48"
-                        />
+                        <Label htmlFor='detailpesanan'>Detail Pesanan ({order.menus.length} item)</Label>
+                        <div className="bg-card shadow-sm border rounded-lg p-4">
+                            {order.menus.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <div className="text-4xl mb-4">📋</div>
+                                    <h3 className="text-lg font-medium mb-2">Tidak ada pesanan</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Tidak ada menu dalam pesanan ini.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <ul className="space-y-3 md:space-y-4">
+                                        {order.menus.map((item) => (
+                                            <li key={item.id} className="border-b last:border-b-0 pb-3 last:pb-0 flex gap-3">
+                                                {/* Gambar di kiri */}
+                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded overflow-hidden flex-shrink-0">
+                                                    <img
+                                                        src={
+                                                            item.foto
+                                                                ? `${window.location.origin}/storage/${item.foto}`
+                                                                : `${window.location.origin}/images/blank-photo-icon.jpg`
+                                                        }
+                                                        alt={item.nama}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 self-center min-w-0">
+                                                    <h3 className="font-medium text-sm md:text-base truncate">{item.nama}</h3>
+                                                    {item.pivot?.catatan && (
+                                                        <p className="text-xs md:text-sm text-muted-foreground truncate">
+                                                            {item.pivot.catatan}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs md:text-sm mt-1">
+                                                        {item.pivot?.jumlah ?? 0} x {new Intl.NumberFormat("id-ID", {
+                                                            style: "currency",
+                                                            currency: "IDR",
+                                                        }).format(item.harga ?? 0)}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right font-semibold self-center">
+                                                    <span className="text-xs md:text-sm font-semibold">
+                                                        {new Intl.NumberFormat("id-ID", {
+                                                            style: "currency",
+                                                            currency: "IDR",
+                                                        }).format((item.pivot?.jumlah ?? 0) * (item.harga ?? 0))}
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {/* Summary */}
+                                    <div className="mt-4 pt-4 border-t space-y-2">
+                                        <div className="flex justify-between text-base md:text-lg font-bold">
+                                            <span>Total:</span>
+                                            <span>{new Intl.NumberFormat("id-ID", {
+                                                style: "currency",
+                                                currency: "IDR",
+                                            }).format(order.total_harga)}</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

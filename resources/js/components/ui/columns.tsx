@@ -1,5 +1,6 @@
 "use client"
 
+import React, { FormEventHandler } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { router } from "@inertiajs/react"
@@ -16,6 +17,7 @@ import {
   Pencil,
   Trash2,
   Check,
+  SendHorizonal,
 } from "lucide-react"
 
 import {
@@ -48,8 +50,11 @@ export interface DataColumnConfig {
   key: string
   header: string
   sortable?: boolean
-  type: "text" | "date" | "time" | "image" | "currency" | "badge" | "list"
+  prefix?: string
+  suffix?: string
+  type: "text" | "date" | "time" | "image" | "currency" | "badge" | "list" | "custom"
   onClick?: (item: any) => any
+  customRenderer?: (item: any) => React.ReactNode
 }
 
 export interface ActionConfig {
@@ -58,6 +63,7 @@ export interface ActionConfig {
   showDelete?: boolean
   showSwitch?: boolean
   showActionButton?: boolean
+  showMultipleButtons?: boolean
   editLabel?: string
   deleteLabel?: string
   switchLabel?: string
@@ -67,6 +73,11 @@ export interface ActionConfig {
   actionButtonVariant?: string
   actionButtonValues?: any | any[]
   actionButtonPath?: string // Route for action button
+  multipleButtonKeys?: string[] // Key to identify multiple action button
+  multipleButtonLabels?: string[] // Label for multiple action button
+  multipleButtonValues?: any[] // Values for multiple action button
+  multipleButtonVariants?: string[] // Variant for multiple action button
+  multipleButtonPaths?: string[] // Routes for multiple action buttons
   switchTrueValue?: any  // Value when switch is ON
   switchFalseValue?: any // Value when switch is OFF
   switchTrueLabel?: string // Label for true state
@@ -160,15 +171,24 @@ export function createTableColumns<T extends BaseEntity>(
           case "text":
             return (
               <span className="truncate max-w-96">
+                {columnConfig.prefix && <span>{columnConfig.prefix}</span>}
                 {value}
+                {columnConfig.suffix && <span>{columnConfig.suffix}</span>}
               </span>
             );
           case "date":
-            return (
-              <span>
-                {new Date(value).getDate()}
-              </span>
-            );
+            const dateValue = new Date(value);
+            if (!isNaN(dateValue.getTime())) {
+              const day = dateValue.getDate().toString().padStart(2, '0');
+              const month = (dateValue.getMonth() + 1).toString().padStart(2, '0');
+              const year = dateValue.getFullYear();
+              return (
+                <span>
+                  {`${day}-${month}-${year}`}
+                </span>
+              );
+            }
+            return <span>{String(value)}</span>;
           case "time":
             const timeValue = value as Date | string;
             const dateTime = new Date(timeValue);
@@ -186,7 +206,7 @@ export function createTableColumns<T extends BaseEntity>(
               <div className="w-10">
                 <AspectRatio ratio={1}>
                   <img
-                    src={imagePath ? `${window.location.origin}/storage/${imagePath}` : `${window.location.origin}/images/blank-photo-icon.jpg`}
+                    src={imagePath ? `${window.location.origin}/storage/${imagePath}` : `${window.location.origin}/images/blank-profile-picture.webp`}
                     alt={`Image for ${row.getValue('nama')}`}
                     className="h-full w-full rounded-md object-cover"
                   />
@@ -208,15 +228,15 @@ export function createTableColumns<T extends BaseEntity>(
             return (
               <Badge
                 variant={
-                  ["tersedia", "aktif", "selesai", "success"].includes(status?.toLowerCase())
+                  ["tersedia", "aktif", "selesai", "success", "layak", "diterima"].includes(status?.toLowerCase())
                     ? "primary"
-                    : ["tidak tersedia", "nonaktif", "batal", "gagal", "error"].includes(status?.toLowerCase())
+                    : ["tidak tersedia", "nonaktif", "batal", "gagal", "error", "tidak_layak", "ditolak"].includes(status?.toLowerCase())
                       ? "destructive"
-                      : "secondary"
+                      : "warning"
                 }
                 className="capitalize"
               >
-                {status}
+                {status.replace('_', ' ')}
               </Badge>
             );
           case "list":
@@ -237,6 +257,11 @@ export function createTableColumns<T extends BaseEntity>(
                 }
               </span>
             );
+          case "custom":
+            if (columnConfig.customRenderer) {
+              return columnConfig.customRenderer(row.original);
+            }
+            return <span>{String(value)}</span>;
         }
       }
     }
@@ -245,12 +270,13 @@ export function createTableColumns<T extends BaseEntity>(
 
   // Tambahkan kolom aksi
   const { actionConfig } = config
-  if (actionConfig.showEdit !== false || actionConfig.showDelete !== false || actionConfig.showSwitch !== false || actionConfig.showActionButton !== false) {
+  if (actionConfig.showEdit !== false || actionConfig.showDelete !== false || actionConfig.showSwitch !== false || actionConfig.showActionButton !== false || actionConfig.showMultipleButtons !== false) {
     columns.push({
       id: "actions",
       cell: ({ row }) => {
         const item = row.original
         const [deleting, setDeleting] = useState(false)
+        const [processing, setProcessing] = useState(false)
         const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
         // Handler untuk edit
@@ -270,20 +296,37 @@ export function createTableColumns<T extends BaseEntity>(
             actionConfig.onDelete(item)
           } else {
             setDeleting(true)
-            router.delete(route(actionConfig.basePath + '.destroy', item.id), {
-              onSuccess: () => {
-                router.reload()
-              },
-              onError: (error) => {
-                console.error('Gagal menghapus item:', error)
-                alert('Terjadi kesalahan saat menghapus item. Silakan coba lagi.')
-              },
-              onFinish: () => {
-                setDeleting(false)
-                setShowDeleteDialog(false)
-                router.visit(route(actionConfig.basePath + '.index'))
-              }
-            })
+            if (actionConfig.deleteLabel !== null && actionConfig.deleteLabel !== '') {
+              router.put(route(actionConfig.basePath + '.destroy', item.id), {}, {
+                onSuccess: () => {
+                  router.reload()
+                },
+                onError: (error) => {
+                  console.error('Gagal menghapus item:', error)
+                  alert('Terjadi kesalahan saat menghapus item. Silakan coba lagi.')
+                },
+                onFinish: () => {
+                  setDeleting(false)
+                  setShowDeleteDialog(false)
+                  router.visit(route(actionConfig.basePath + '.index'))
+                }
+              })
+            } else {
+              router.delete(route(actionConfig.basePath + '.destroy', item.id), {
+                onSuccess: () => {
+                  router.reload()
+                },
+                onError: (error) => {
+                  console.error('Gagal menghapus item:', error)
+                  alert('Terjadi kesalahan saat menghapus item. Silakan coba lagi.')
+                },
+                onFinish: () => {
+                  setDeleting(false)
+                  setShowDeleteDialog(false)
+                  router.visit(route(actionConfig.basePath + '.index'))
+                }
+              })
+            }
           }
         }
 
@@ -380,6 +423,27 @@ export function createTableColumns<T extends BaseEntity>(
           );
         };
 
+        const handleEachAction = ({ key, value, label, path }: { key: string, label: string, value: any, path: string }) => {
+          setProcessing(true);
+          console.log(`Handling action for key: ${key}, value: ${value}, label: ${label}, path: ${actionConfig.basePath + path}`);
+          const data = { [key]: value };
+          router.put(route(actionConfig.basePath + path, item.id), data, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+              console.log(`Action "${label}" executed successfully`);
+              router.reload();
+            },
+            onError: (error) => {
+              console.error(`Failed to execute action "${label}":`, error);
+            },
+            onFinish: () => {
+              setProcessing(false);
+              router.visit(route(actionConfig.basePath + '.index'));
+            }
+          })
+        }
+
         return (
           <>
             <div className="text-right">
@@ -400,6 +464,40 @@ export function createTableColumns<T extends BaseEntity>(
                       {actionConfig.actionButtonLabel || 'Aksi'}
                     </DropdownMenuItem>
                   )}
+                  {(actionConfig.showActionButton && (actionConfig.showMultipleButtons || actionConfig.showSwitch || actionConfig.showEdit || actionConfig.showDelete)) && <DropdownMenuSeparator />}
+                  <div className="flex flex-col items-start">
+                    {(actionConfig.showMultipleButtons && actionConfig.multipleButtonKeys && actionConfig.multipleButtonKeys.length > 0) && (
+                      actionConfig.multipleButtonKeys.map((key, index) => {
+                        const label = Array.isArray(actionConfig.multipleButtonLabels) ? actionConfig.multipleButtonLabels[index] : actionConfig.multipleButtonLabels;
+                        const value = Array.isArray(actionConfig.multipleButtonValues) ? actionConfig.multipleButtonValues[index] : actionConfig.multipleButtonValues;
+                        const path = Array.isArray(actionConfig.multipleButtonPaths) ? actionConfig.multipleButtonPaths[index] : actionConfig.multipleButtonPaths;
+                        const variant = Array.isArray(actionConfig.multipleButtonVariants) ? actionConfig.multipleButtonVariants[index] : actionConfig.multipleButtonVariants;
+
+                        // Skip if required values are undefined
+                        if (!label || !path) {
+                          return null;
+                        }
+
+                        return (
+                          <form onSubmit={() => handleEachAction({ key, label, value, path })} className="w-full">
+                            <input type="hidden" name={key} value={value} />
+                            <button type="submit" className="w-full" disabled={processing}>
+                              <DropdownMenuItem
+                                key={key}
+                                disabled={processing}
+                                variant={`${variant as 'default' || 'destructive'}`}
+                                className="w-full"
+                              >
+                                <SendHorizonal className="h-4 w-4 mr-1" />
+                                {label || "Aksi"}
+                              </DropdownMenuItem>
+                            </button>
+                          </form>
+                        )
+                      }).filter(Boolean)
+                    )}
+                  </div>
+                  {(actionConfig.showMultipleButtons && (actionConfig.showSwitch || actionConfig.showEdit || actionConfig.showDelete)) && <DropdownMenuSeparator />}
                   {actionConfig.showSwitch !== false && (
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                       <Switch
@@ -414,9 +512,7 @@ export function createTableColumns<T extends BaseEntity>(
                       {actionConfig.switchLabel || 'Status'}
                     </DropdownMenuItem>
                   )}
-                  {(actionConfig.showSwitch !== false || actionConfig.showActionButton !== false) && (
-                    <DropdownMenuSeparator />
-                  )}
+                  {(actionConfig.showSwitch && (actionConfig.showEdit || actionConfig.showDelete)) && <DropdownMenuSeparator />}
                   {actionConfig.showEdit !== false && (
                     <DropdownMenuItem onClick={handleEdit}>
                       <Pencil className="h-4 w-4 mr-1" />
@@ -444,9 +540,11 @@ export function createTableColumns<T extends BaseEntity>(
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Apakah Anda yakin ingin menghapus item ini?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    <span>Apakah Anda yakin ingin {actionConfig.deleteLabel?.toLowerCase() ?? 'menghapus'} item ini?</span>
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    Aksi ini tidak dapat dibatalkan. Item ini akan dihapus secara permanen
+                    Aksi ini tidak dapat dibatalkan. Item ini akan di{actionConfig.deleteLabel?.toLowerCase() ?? 'hapus'} secara permanen
                     dan tidak dapat dipulihkan lagi.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -466,9 +564,9 @@ export function createTableColumns<T extends BaseEntity>(
                     className={cn(buttonVariants({ variant: 'destructive' }))}
                   >
                     {deleting ? (
-                      <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Hapus"
+                      actionConfig.deleteLabel || 'Hapus'
                     )}
                   </AlertDialogAction>
                 </AlertDialogFooter>

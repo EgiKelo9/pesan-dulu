@@ -16,14 +16,29 @@ class TenantFactory extends Factory
      */
     public function definition(): array
     {
+        // Generate start time between 08:00 and 12:00 with only 00 and 30 minutes
+        $startHour = fake()->numberBetween(8, 12);
+        $startMinute = fake()->randomElement([0, 30]);
+        $jamMulai = sprintf('%02d:%02d', $startHour, $startMinute);
+
+        // Generate end time 8-10 hours after start time with only 00 and 30 minutes
+        $durationHours = fake()->numberBetween(8, 10);
+        $endDateTime = \DateTime::createFromFormat('H:i', $jamMulai);
+        $endDateTime->add(new \DateInterval('PT' . $durationHours . 'H'));
+        
+        // Ensure end minute is either 00 or 30
+        $endMinute = fake()->randomElement([0, 30]);
+        $endDateTime->setTime($endDateTime->format('H'), $endMinute);
+        $jamSelesai = $endDateTime->format('H:i');
+
         $nama = fake()->company();
         return [
             'nama' => $nama,
             'telepon' => fake()->unique()->phoneNumber(),
             'alamat' => fake()->address(),
-            'qris' => "qris/1749759802_qris example.png",
-            'jam_buka' => fake()->time("H:i"),
-            'jam_tutup' => fake()->time("H:i"),
+            'qris' => "qris/1749864998_qris_code.jpeg",
+            'jam_buka' => $jamMulai,
+            'jam_tutup' => $jamSelesai,
             'tautan' => '/'.str_replace(' ', '-', strtolower($nama)),
             'user_id' => \App\Models\User::factory()->create()->id,
             'status' => 'aktif',

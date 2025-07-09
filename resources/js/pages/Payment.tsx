@@ -3,7 +3,7 @@ import { router, usePage } from "@inertiajs/react";
 import { FiArrowLeft, FiDownload, FiImage, FiCheckCircle } from "react-icons/fi";
 import { AspectRatio } from "@radix-ui/react-aspect-ratio";
 import { Button } from "@/components/ui/button";
-import { CircleArrowLeft } from "lucide-react";
+import { CircleArrowLeft, LoaderCircle } from "lucide-react";
 
 type CartItem = {
   menu_id: number;
@@ -166,7 +166,7 @@ export default function Payment() {
             <div className="flex-1 order-1 lg:order-0">
               <h2 className="text-lg md:text-xl font-semibold mb-4">Unggah Bukti Pembayaran</h2>
               <div
-                className="border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center h-40 md:h-48 cursor-pointer mb-4 md:mb-6 relative hover:border-gray-500 transition-colors"
+                className="border-2 border-dashed border-gray-400 rounded-xl flex flex-col items-center justify-center aspect-square cursor-pointer mb-4 md:mb-6 relative hover:border-gray-500 transition-colors"
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 onClick={(e) => {
@@ -193,17 +193,17 @@ export default function Payment() {
                     </div>
                   </>
                 ) : (
-                  <div className="relative w-full h-40 md:h-48 flex items-center justify-center">
+                  <div className="relative w-full h-full flex items-center justify-center">
                     <img
                       src={qrisPreview}
                       alt="Preview Bukti Pembayaran"
-                      className="max-h-32 md:max-h-40 max-w-full w-auto h-auto object-contain rounded-lg border mx-auto"
+                      className="max-h-[80%] max-w-[80%] w-auto h-auto object-contain rounded-lg border mx-auto"
                       style={{ background: "#f9fafb" }}
                     />
                     <Button
                       id="remove-preview"
                       type="button"
-                      className="absolute top-1 right-1 md:top-2 md:right-2 bg-white rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center p-0 shadow hover:bg-red-500 hover:text-white transition text-xs md:text-sm"
+                      className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center p-0 shadow hover:bg-red-600 transition text-xs md:text-sm font-bold"
                       onClick={e => {
                         e.stopPropagation();
                         setFile(null);
@@ -224,27 +224,13 @@ export default function Payment() {
                   onChange={handleFileChange}
                 />
               </div>
-              {file && (
-                <div className="flex items-center rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6 bg-card border">
-                  <FiImage size={24} className="md:hidden text-gray-400 mr-2" />
-                  <FiImage size={32} className="hidden md:block text-gray-400 mr-3" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm md:text-base truncate">{file.name}</div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </div>
-                  </div>
-                  <FiCheckCircle size={20} className="md:hidden text-green-500 ml-2 flex-shrink-0" />
-                  <FiCheckCircle size={28} className="hidden md:block text-green-500 ml-2 flex-shrink-0" />
-                </div>
-              )}
             </div>
           </div>
 
           {/* Confirmation Button */}
           <div className="mt-6 md:mt-8 sticky bottom-0 bg-background pt-4 border-t lg:border-t-0 lg:bg-transparent lg:pt-0 lg:static">
             <Button
-              className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 md:py-4 text-base md:text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-lg"
+              className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-4 md:py-6 text-base md:text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-lg"
               disabled={!file || isSubmitting}
               onClick={handleSubmit}
               type="button"
@@ -252,10 +238,7 @@ export default function Payment() {
               {isSubmitting
                 ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                    <LoaderCircle className="animate-spin h-5 w-5 md:h-6 md:w-6" />
                     Mengunggah...
                   </span>
                 )

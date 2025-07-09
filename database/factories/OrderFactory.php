@@ -22,7 +22,7 @@ class OrderFactory extends Factory
         return [
             'nama' => fake()->name(),
             'telepon' => Str::replace(' ', '', fake()->phoneNumber()),
-            'status' => 'diambil',
+            'status' => fake()->randomElement(['menunggu', 'diterima', 'siap', 'diambil', 'gagal']),
             'tanggal_pesanan' => now('Asia/Jakarta')->subDays(fake()->numberBetween(0, 7)),
             'total_harga' => fake()->numberBetween(10, 300) * 1000,
             'bukti_pembayaran' => 'bukti_pembayaran/1750666255_VBG WTA 2025.jpg',

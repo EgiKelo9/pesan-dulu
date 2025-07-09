@@ -51,14 +51,15 @@ export const OrderColumns: ColumnDef<Order>[] = createTableColumns<Order>({
     actionConfig: {
         basePath: "merchant.order",
         showEdit: false,
-        showDelete: false,
+        showDelete: true,
         showSwitch: false,
         showActionButton: true,
+        deleteLabel: 'Tolak',
         actionButtonLabel: "Konfirmasi",
         actionButtonKey: "status",
         actionButtonValues: ["menunggu", "diterima", "siap", "diambil"],
         actionButtonVariant: "primary",
-        actionButtonPath: ".updateStatus",
+        actionButtonPath: ".updateStatus",  
     },
     showSelectColumn: true,
 })
