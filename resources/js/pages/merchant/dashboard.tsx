@@ -88,7 +88,7 @@ export default function Dashboard({ dashboardData }: { dashboardData: DashboardD
             <Head title="Beranda" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 {/* Header */}
-                <h1 className="text-xl py-2 font-semibold text-gray-900 dark:text-gray-100">Beranda</h1>
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Beranda</h1>
 
                 {/* Statistics Cards */}
                 <div className="grid auto-rows-min gap-4 md:grid-cols-2 lg:grid-cols-4">

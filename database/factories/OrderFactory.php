@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Menu;
 use App\Models\Order;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,8 +21,8 @@ class OrderFactory extends Factory
     {
         return [
             'nama' => fake()->name(),
-            'telepon' => fake()->phoneNumber(),
-            'status' => 'diambil',
+            'telepon' => Str::replace(' ', '', fake()->phoneNumber()),
+            'status' => fake()->randomElement(['menunggu', 'diterima', 'siap', 'diambil', 'gagal']),
             'tanggal_pesanan' => now('Asia/Jakarta')->subDays(fake()->numberBetween(0, 7)),
             'total_harga' => fake()->numberBetween(10, 300) * 1000,
             'bukti_pembayaran' => 'bukti_pembayaran/1750666255_VBG WTA 2025.jpg',

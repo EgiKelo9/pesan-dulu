@@ -46,15 +46,35 @@ class GuestController extends Controller
 
         // Ambil semua kategori milik tenant tersebut
         $categories = Category::where('tenant_id', $tenant->id)->with(['menus' => function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id)->orderBy('created_at', 'desc');
+            $query->where('tenant_id', $tenant->id)->where('status', 'tersedia')->orderBy('created_at', 'desc');
         }])->get();
 
         $cart = session()->get('cart', []);
 
+        $orderIds = json_decode(Cookie::get('order_ids', '[]'), true);
+        if (!is_array($orderIds)) {
+            $orderIds = [];
+        }
+
+        $riwayatOrders = Order::with(['tenant', 'menus'])
+            ->whereIn('id', $orderIds)
+            ->get()
+            ->map(function ($o) {
+                return [
+                    'id' => $o->id,
+                    'tenant' => $o->tenant ? $o->tenant->nama : '-',
+                    'total_harga' => $o->total_harga,
+                    'jumlah_item' => $o->menus->count(),
+                    'tanggal_pesanan' => $o->tanggal_pesanan,
+                    'status' => $o->status,
+                ];
+            });
+
         return Inertia::render('Order', [
             'tenant' => $tenant,
             'categories' => $categories,
-            'cart' => $cart
+            'cart' => $cart,
+            'riwayat' => $riwayatOrders,
         ]);
     }
 
@@ -232,10 +252,8 @@ class GuestController extends Controller
                 'bukti_pembayaran' => $imagePath,
                 'tenant_id' => $tenant->id,
             ]);
-            \Log::info('DEBUG: Mulai proses attach menu ke order', [
-                'order_id' => $order->id,
-                'cart' => $cart
-            ]);
+
+            // Add items to order - FIX THE ORDER MENU CREATION
             foreach ($cart as $item) {
                 $menu = Menu::find($item['menu_id']);
                 if ($menu) {
@@ -243,21 +261,8 @@ class GuestController extends Controller
                         'jumlah' => $item['jumlah'],
                         'harga_satuan' => $menu->harga,
                         'total_harga' => $menu->harga * $item['jumlah'],
-                        'catatan' => $item['catatan']
+                        'catatan' => $item['catatan'],
                     ]);
-                    $order->addOrderMenu($menu->id, $item['jumlah'], $menu->harga, $item['catatan']);
-                    \Log::info('DEBUG: Menu berhasil ditambahkan ke order', [
-                        'order_id' => $order->id,
-                        'menu_id' => $menu->id
-                    ]);
-                    // Cek isi order_menu setelah insert
-                    $orderMenus = \DB::table('order_menu')->where('order_id', $order->id)->get();
-                    // dd($orderMenus);
-                    \Log::info('DEBUG: Isi order_menu setelah insert', [
-                        'order_id' => $order->id,
-                        'order_menu' => $orderMenus
-                    ]);
-
                 } else {
                     throw ValidationException::withMessages(['cart' => 'Menu tidak ditemukan dalam keranjang.']);
                 }
@@ -323,12 +328,10 @@ class GuestController extends Controller
         }
 
         if (!in_array($id_order, $orderIds)) {
-            dd($orderIds);
             return redirect()->route('home')->with('message', 'Maaf Id order tidak ditemukan');
         }
 
         if (empty($id_order)) {
-            dd($id_order);
             return redirect()->route('home')->with('message', 'Tidak ada pesanan yang sedang dipantau.');
         }
         // Ambil order berdasarkan id_order
@@ -370,11 +373,8 @@ class GuestController extends Controller
 
         // Validasi data minimal
         if (!$data || !isset($data['categories'])) {
-            dd("jir gak ada data");
             return response()->json(['error' => 'Invalid data'], 400);
         }
-
-        // dd($data, $id_order);
 
         // Simpan ke database
         $report = Report::create([
@@ -382,7 +382,7 @@ class GuestController extends Controller
             'categories' => json_encode($data['categories']),
             'reason' => $data['reason'] ?? '',
         ]);
-        return response()->json(['message' => 'Laporan berhasil disimpan']);
+        return redirect()->back()->with('success', 'Laporan berhasil dibuat!');
     }
 
     public function home(){

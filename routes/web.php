@@ -13,15 +13,25 @@ use App\Http\Controllers\Merchant\OrderController;
 use App\Http\Controllers\Merchant\TenantController;
 use App\Http\Controllers\GuestController;
 
-
-Route::get('/', [GuestController::class, 'home'])->name('home');
-
-Route::middleware('guest')->group(function () {
-
+Route::controller(GuestController::class)->group(function () {
+    Route::get('/', 'home')->name('home');
+    Route::get('/cart', 'cart')->name('cart');
+    Route::post('/cart/add', 'add')->name('cart.add');
+    Route::get('/', 'home')->name('home');
+    Route::get('/cart', 'cart')->name('cart');
+    Route::post('/cart/add', 'add')->name('cart.add');
+    Route::post('/cart/update', 'updateCart')->name('cart.update');
+    Route::delete('/cart/delete', 'deleteItemCart')->name('cart.delete');
+    Route::post('/cart/checkout', 'checkout')->name('cart.checkout');
+    Route::get('/cart/payment', 'showPayment')->name('payment.show');
+    Route::post('/cart/payment', 'konfirmasiPembayaran')->name('cart.payment');
+    Route::get('/status_pesanan/{id_order}', 'pantauPesanan')->name('pantauPesanan');
+    Route::post('/laporan/{id_order}', 'buatLaporan')->name('buatLaporan');
+    Route::get('/{slug}', 'tampilkanWarung')
+        ->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-
     // Merchant Routes
     Route::get('merchant/dashboard', [DashboardController::class, 'merchant'])
         ->name('merchantDashboard');
@@ -36,10 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('menu.updateStatus');
         Route::resource('order', OrderController::class)
             ->except(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::put('order/{order}', [OrderController::class, 'destroy'])
+            ->name('order.destroy');
         Route::put('order/{order}/status', [OrderController::class, 'updateStatus'])
             ->name('order.updateStatus');
     });
-
     // Admin Routes
     Route::get('admin/dashboard', [DashboardController::class, 'admin'])
         ->name('adminDashboard');
@@ -49,42 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('merchant.updateStatus');
         Route::resource('tenant', AdminTenantController::class);
         Route::put('tenant/{tenant}/status', [AdminTenantController::class, 'updateStatus'])
-            ->name('tenant.updateStatus');
-        Route::resource('report', ReportController::class);
+        ->name('tenant.updateStatus');
     });
-
 });
-
-Route::get('/cart', [GuestController::class, 'cart'])
-    ->name('cart'); 
-
-Route::post('/cart/add', [GuestController::class, 'add']);
-
-Route::post('/cart/update', [GuestController::class, 'updateCart'])
-    ->name('cart.update');
-
-Route::post('/cart/checkout', [GuestController::class, 'checkout'])
-    ->name('cart.checkout');
-
-Route::get('/cart/payment', [GuestController::class, 'showPayment'])
-    ->name('payment.show');
-
-Route::post('/cart/payment', [GuestController::class, 'konfirmasiPembayaran']) 
-    ->name('payment.confirm');
-
-Route::get('/status_pesanan/{id_order}', [GuestController::class, 'pantauPesanan'])
-    ->name('pantauPesanan');
-
-Route::post('/laporan/{id_order}', [GuestController::class, 'buatLaporan'])
-    ->name('buatLaporan');
-
-    
-Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
-    ->where('slug', '^(?!login$|logout$|register$|reset-password$|forgot-password$|confirm-password$|email$|verify-email$|merchant$|admin$|settings$|storage$|up$|cart$)[A-Za-z0-9\-_]+$');
-
-// Route::get('/{slug}', [GuestController::class, 'tampilkanWarung'])
-//     ->where('slug', '^(?!login$|register$|logout$)[A-Za-z0-9\-_]+$');
-//     // ->where('slug', '[a-z0-9\-]+');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
