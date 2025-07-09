@@ -11,7 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/admin/dashboard',
     },
     {
-        title: 'Report',
+        title: 'Laporan',
         href: '/admin/report',
     },
 ];
@@ -22,15 +22,12 @@ interface ReportTableProps {
 
 export default function Report({ reports }: ReportTableProps) {
     const { ToasterComponent } = useFlashMessages();
-
-    console.log(reports);
-
     return (
         <AppLayout breadcrumbs={breadcrumbs} userType='admin'>
-            <Head title="Report" />
+            <Head title="Laporan" />
             <ToasterComponent />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-                <DataTable title="Report" href="/admin/report" columns={ReportColumns} data={reports} showCreateButton={false}/>
+                <DataTable title="Laporan" href="/admin/report" columns={ReportColumns} data={reports} showCreateButton={false}/>
             </div>
         </AppLayout>
     );

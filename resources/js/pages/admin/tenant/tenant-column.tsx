@@ -64,5 +64,5 @@ export const TenantColumns: ColumnDef<Tenant>[] = createTableColumns<Tenant>({
         switchTrueValue: 'aktif',
         switchFalseValue: 'nonaktif',
     },
-    showSelectColumn: true,
+    showSelectColumn: false,
 })

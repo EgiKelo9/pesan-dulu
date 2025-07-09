@@ -387,7 +387,8 @@ class GuestController extends Controller
 
     public function home(){
         // Ambil semua tenant
-        $tenants = Tenant::select('nama', 'jam_buka', 'jam_tutup', 'tautan')->get();
+        $tenants = Tenant::select('nama', 'jam_buka', 'jam_tutup', 'tautan')
+            ->where('status', 'aktif')->get();
 
         // dd($tenants);
         return Inertia::render('welcome', [

@@ -116,7 +116,7 @@ export default function ShowMerchant({ merchant }: { merchant: UserData }) {
                         <div className='grid gap-4 mt-2 col-span-2'>
                             <AspectRatio ratio={16 / 9} className='relative'>
                                 <img
-                                    src={merchant.avatar ? `${window.location.origin}/storage/${merchant.avatar}` : `${window.location.origin}/images/blank-photo-icon.jpg`}
+                                    src={merchant.avatar ? `${window.location.origin}/storage/${merchant.avatar}` : `${window.location.origin}/images/blank-profile-picture.webp`}
                                     alt="Avatar Image"
                                     className="h-full w-full rounded-md object-contain aspect-video"
                                 />

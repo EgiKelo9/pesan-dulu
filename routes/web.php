@@ -60,7 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('merchant.updateStatus');
         Route::resource('tenant', AdminTenantController::class);
         Route::put('tenant/{tenant}/status', [AdminTenantController::class, 'updateStatus'])
-        ->name('tenant.updateStatus');
+            ->name('tenant.updateStatus');
+        Route::resource('report', ReportController::class)
+            ->only(['index', 'show']);
     });
 });
 

@@ -32,5 +32,5 @@ export const CategoryColumns: ColumnDef<Category>[] = createTableColumns<Categor
         showSwitch: false,
         showActionButton: false,
     },
-    showSelectColumn: true,
+    showSelectColumn: false,
 })

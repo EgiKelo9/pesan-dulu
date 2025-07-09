@@ -61,5 +61,5 @@ export const OrderColumns: ColumnDef<Order>[] = createTableColumns<Order>({
         actionButtonVariant: "primary",
         actionButtonPath: ".updateStatus",  
     },
-    showSelectColumn: true,
+    showSelectColumn: false,
 })

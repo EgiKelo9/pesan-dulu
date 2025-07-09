@@ -16,7 +16,6 @@ class ReportController extends Controller
      */
     public function index()
     {
-        // dd(Report::with('order.tenant')->orderBy('created_at', 'desc')->get());
         return Inertia::render('admin/report/report-index', [
             'reports' => Report::with('order.tenant')->orderBy('created_at', 'desc')->get(),
         ]);

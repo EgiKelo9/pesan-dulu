@@ -57,5 +57,5 @@ export const MerchantColumns: ColumnDef<Merchant>[] = createTableColumns<Merchan
         switchTrueValue: 'aktif',
         switchFalseValue: 'nonaktif',
     },
-    showSelectColumn: true,
+    showSelectColumn: false,
 })

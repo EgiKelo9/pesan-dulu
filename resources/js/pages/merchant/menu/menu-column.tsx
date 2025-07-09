@@ -64,5 +64,5 @@ export const MenuColumns: ColumnDef<Menu>[] = createTableColumns<Menu>({
         switchTrueValue: 'tersedia',
         switchFalseValue: 'tidak tersedia',
     },
-    showSelectColumn: true,
+    showSelectColumn: false,
 })
