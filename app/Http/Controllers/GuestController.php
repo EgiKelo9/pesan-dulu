@@ -24,7 +24,7 @@ class GuestController extends Controller
      */
     public function tampilkanWarung($slug)
     {
-        $tenant = Tenant::where('tautan', '/' . $slug)->first();
+        $tenant = Tenant::where('tautan', '/' . $slug)->where('status', 'aktif')->first();
         if (!$tenant) {
             abort(404);
         }

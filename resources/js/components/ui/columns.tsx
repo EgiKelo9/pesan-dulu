@@ -191,6 +191,14 @@ export function createTableColumns<T extends BaseEntity>(
             return <span>{String(value)}</span>;
           case "time":
             const timeValue = value as Date | string;
+            if (typeof timeValue === 'string') {
+              const [hours, minutes, seconds] = timeValue.split(':');
+              return (
+                <span>
+                  {`${hours}:${minutes}`} WITA
+                </span>
+              );
+            }
             const dateTime = new Date(timeValue);
             if (!isNaN(dateTime.getTime())) {
               return (
@@ -199,7 +207,7 @@ export function createTableColumns<T extends BaseEntity>(
                 </span>
               )
             }
-            return <span>{String(timeValue)} WITA</span>;
+            return <span>{String(timeValue).slice(0, 5)} WITA</span>;
           case "image":
             const imagePath = value as string
             return (
