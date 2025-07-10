@@ -50,19 +50,19 @@ class RegisteredUserController extends Controller
             'telepon' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'email_verified_at' => now(), // tanpa melalui verifikasi email
-            'remember_token' => Str::random(10), // tanpa melalui verifikasi email
+            // 'email_verified_at' => now(), // tanpa melalui verifikasi email
+            // 'remember_token' => Str::random(10), // tanpa melalui verifikasi email
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        // return Inertia::render('auth/verify-email', [
-        //     'status' => $request->session()->get('status')
-        // ]);
+        return Inertia::render('auth/verify-email', [
+           'status' => $request->session()->get('status')
+        ]);
 
-        return redirect()->route('merchant.tenant.create')->with('success', 'Akun Anda berhasil dibuat. Silakan buat warung untuk melanjutkan.');
+        // return redirect()->route('merchant.tenant.create')->with('success', 'Akun Anda berhasil dibuat. Silakan buat warung untuk melanjutkan.');
 
     }
 }
